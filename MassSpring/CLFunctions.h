@@ -13,6 +13,7 @@ struct cl_system
 extern struct cl_system cl_components;
 
 void runTestKernel();
+unsigned int readFile(char *path, char *buffer);
 void initOpenCL();
 void tearDownCL();
 

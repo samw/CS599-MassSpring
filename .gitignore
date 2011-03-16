@@ -1,4 +1,5 @@
 *.sdf
+*.user
 MassSpring/Debug-AMD/*
 MassSpring/Debug-NV/*
 lib/OpenCL-AMD/*

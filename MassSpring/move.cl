@@ -3,6 +3,6 @@
 __kernel void move_vertex(__global float4* vertex, float4 direction, float dt)
 {
   unsigned int x = get_global_id(0);
-  fast_normalize(direction);
-  vertex[x] = vertex[x] + direction * x * dt;
+  direction = fast_normalize(direction);
+  vertex[x] = vertex[x] + direction * (x+1) * dt;
 }

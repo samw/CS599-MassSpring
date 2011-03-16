@@ -35,6 +35,21 @@ void runTestKernel()
   clFinish(cl_components.command_queue);
 }
 
+
+unsigned int readFile(char *path, char *buffer)
+{
+  unsigned int size;
+  FILE *input;
+  input = fopen(path, "rb");
+  if(!input) return 0;
+  fseek(input, 0, SEEK_END);
+  size = ftell(input);
+  rewind(input);
+  size = fread(buffer, sizeof(char), size, input);
+  fclose(input);
+  return size;
+}
+
 void initOpenCL()
 {
   cl_int error;
@@ -100,23 +115,15 @@ void initOpenCL()
     printf("OpenCL Error: %d\n", error);
   }
 
-  //delete platforms;
-  //delete devices;
-
   //Create OpenCL buffer object attached to OpenGL vertex buffer object
   simulation.position = clCreateFromGLBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE, simulation.position_buffer, NULL);
 
   //Compile source and create kernel
   cl_program moveprogram = NULL;
-  char source[] =
-    "__kernel void move_vertex(__global float4* vertex, float4 direction, float dt)\
-    {\
-      unsigned int x = get_global_id(0);\
-      direction = fast_normalize(direction);\
-      vertex[x] = vertex[x] + direction * (x+1) * dt;\
-    }";
+  char source[1000];
+  size_t source_size = readFile("move.cl", source);
+  if(source_size == 0) exit(-1);
   const char *sourcelist[1] = {source};
-  size_t source_size = 226;
   moveprogram = clCreateProgramWithSource(cl_components.opencl_context, 1, sourcelist, &source_size, NULL);
   error = clBuildProgram(moveprogram, 1, devices, "", NULL, NULL);
   if(error)
@@ -125,14 +132,16 @@ void initOpenCL()
     size_t outputsize;
     clGetProgramBuildInfo(moveprogram, devices[0], CL_PROGRAM_BUILD_LOG, 1000, buildinfo, &outputsize);
     printf("Compile Error for moveprogram: %d\n", error);
-    fwrite(buildinfo, outputsize, 1, stdout); 
+    fwrite(buildinfo, min(outputsize, 1000), 1, stdout); 
   }
-
   //Create kernel from program
   cl_components.opencl_kernel = clCreateKernel(moveprogram, "move_vertex", &error);  if(error)
   {
     printf("Kernel Error: %d\n", error);
   }
+
+  delete platforms;
+  delete devices;
 }
 
 void tearDownCL()
