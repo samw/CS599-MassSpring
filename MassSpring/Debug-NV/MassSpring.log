@@ -1,0 +1,26 @@
+﻿Build started 3/16/2011 11:07:24 AM.
+     1>Project "D:\Sam\Documents\Visual Studio 2010\599\599OpenCL\MassSpring\MassSpring.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug-NV\CLMassSpring.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         f:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I"D:\Sam\Documents\Visual Studio 2010\599\599OpenCL\MassSpring\\..\lib\glut-3.7.6\include" /I"D:\Sam\Documents\Visual Studio 2010\599\599OpenCL\MassSpring\\..\lib\OpenCL-NV\include" /I"D:\Sam\Documents\Visual Studio 2010\599\599OpenCL\MassSpring\\..\lib\glew-1.5.8\include" /ZI /nologo /W3 /WX- /Od /Oy- /D Win32 /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug-NV\\" /Fd"Debug-NV\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt CLFunctions.cpp MassSpring.cpp RenderSystem.cpp
+         RenderSystem.cpp
+         MassSpring.cpp
+         CLFunctions.cpp
+         Generating Code...
+       Link:
+         f:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\Sam\Documents\Visual Studio 2010\599\599OpenCL\Debug-NV\CLMassSpring.exe" /NOLOGO /LIBPATH:"D:\Sam\Documents\Visual Studio 2010\599\599OpenCL\MassSpring\\..\lib\glut-3.7.6\lib" /LIBPATH:"D:\Sam\Documents\Visual Studio 2010\599\599OpenCL\MassSpring\\..\lib\OpenCL-NV\lib\Win32" /LIBPATH:"D:\Sam\Documents\Visual Studio 2010\599\599OpenCL\MassSpring\\..\lib\glew-1.5.8\lib\\" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib OpenCL.lib glew32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug-NV\CLMassSpring.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"D:\Sam\Documents\Visual Studio 2010\599\599OpenCL\Debug-NV\CLMassSpring.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\Sam\Documents\Visual Studio 2010\599\599OpenCL\Debug-NV\CLMassSpring.lib" /MACHINE:X86 "Debug-NV\CLFunctions.obj"
+         "Debug-NV\MassSpring.obj"
+         "Debug-NV\RenderSystem.obj"
+         LINK : D:\Sam\Documents\Visual Studio 2010\599\599OpenCL\Debug-NV\CLMassSpring.exe not found or not built by the last incremental link; performing full link
+         MassSpring.vcxproj -> D:\Sam\Documents\Visual Studio 2010\599\599OpenCL\Debug-NV\CLMassSpring.exe
+       Manifest:
+         c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"D:\Sam\Documents\Visual Studio 2010\599\599OpenCL\Debug-NV\CLMassSpring.exe;#1" /manifest "Debug-NV\CLMassSpring.exe.intermediate.manifest"
+       FinalizeBuildStatus:
+         Deleting file "Debug-NV\CLMassSpring.unsuccessfulbuild".
+         Touching "Debug-NV\CLMassSpring.lastbuildstate".
+     1>Done Building Project "D:\Sam\Documents\Visual Studio 2010\599\599OpenCL\MassSpring\MassSpring.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.11

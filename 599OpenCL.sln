@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{29D22E79-C18C-4899-8C4B-AFFD33E9BA68}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CLMassSpring", "MassSpring\MassSpring.vcxproj", "{F1455A61-8355-4CA2-A61B-692D842B86E6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug-AMD|Win32 = Debug-AMD|Win32
+		Debug-NV|Win32 = Debug-NV|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F1455A61-8355-4CA2-A61B-692D842B86E6}.Debug-AMD|Win32.ActiveCfg = Debug-AMD|Win32
+		{F1455A61-8355-4CA2-A61B-692D842B86E6}.Debug-AMD|Win32.Build.0 = Debug-AMD|Win32
+		{F1455A61-8355-4CA2-A61B-692D842B86E6}.Debug-NV|Win32.ActiveCfg = Debug-NV|Win32
+		{F1455A61-8355-4CA2-A61B-692D842B86E6}.Debug-NV|Win32.Build.0 = Debug-NV|Win32
+		{F1455A61-8355-4CA2-A61B-692D842B86E6}.Release|Win32.ActiveCfg = Release|Win32
+		{F1455A61-8355-4CA2-A61B-692D842B86E6}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
