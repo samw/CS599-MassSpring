@@ -1,0 +1,8 @@
+*.sdf
+MassSpring/Debug-AMD/*
+MassSpring/Debug-NV/*
+lib/OpenCL-AMD/*
+lib/OpenCL-NV/*
+Debug-AMD/*
+Debug-NV/*
+ipch/*
