@@ -74,21 +74,6 @@ void runTestKernel()
   clFinish(cl_components.command_queue);
 }
 
-
-unsigned int readFile(char *path, char *buffer)
-{
-  unsigned int size;
-  FILE *input;
-  input = fopen(path, "rb");
-  if(!input) return 0;
-  fseek(input, 0, SEEK_END);
-  size = ftell(input);
-  rewind(input);
-  size = fread(buffer, sizeof(char), size, input);
-  fclose(input);
-  return size;
-}
-
 void initOpenCL()
 {
   cl_int error;
@@ -153,79 +138,82 @@ void initOpenCL()
   {
     printf("OpenCL Error: %d\n", error);
   }
+  
+  //Load all kernels from cl code files
+  char *move_kernel_names[1] = {"move_vertex"};
+  cl_kernel *move_kernels[1] = {&cl_components.opencl_kernel};
+  loadCLCodeFile("move.cl", cl_components.opencl_context, num_devices, devices, 1,
+                 move_kernel_names, move_kernels);
+  
+  char *spring_kernel_names[2] = {"spring_kernel_single", "spring_kernel_batch"};
+  cl_kernel *spring_kernels[2] = {&cl_components.single_spring_kernel, &cl_components.batch_spring_kernel};
+  loadCLCodeFile("spring_kernel.cl", cl_components.opencl_context, num_devices, devices, 2,
+                 spring_kernel_names, spring_kernels);
 
+  char *step_kernel_names[1] = {"euler_kernel"};
+  cl_kernel *step_kernels[1] = {&cl_components.euler_kernel};
+  loadCLCodeFile("timestep.cl", cl_components.opencl_context, num_devices, devices, 1,
+                 step_kernel_names, step_kernels);
+
+  delete platforms;
+  delete devices;
+}
+
+bool loadCLCodeFile(char *file, cl_context context, int num_devices, cl_device_id *devices,
+                    int num_kernels, char **kernel_names, cl_kernel **kernels)
+{
+  cl_int error = 0;
   //Compile source and create kernel this is to use the old test kernel move.cl
   size_t source_size;
   char source[10000];
   const char *sourcelist[1] = {source};
-  cl_program moveprogram = NULL;
-  source_size = readFile("move.cl", source);
-  if(source_size == 0) exit(-1);
-  moveprogram = clCreateProgramWithSource(cl_components.opencl_context, 1, sourcelist, &source_size, NULL);
-  error = clBuildProgram(moveprogram, 1, devices, "", NULL, NULL);
+  cl_program program = NULL;
+  source_size = readFile(file, source);
+  if(source_size == 0)
+  {
+    printf("Source File Read Error\n");
+    return false;
+  }
+  program = clCreateProgramWithSource(context, 1, sourcelist, &source_size, &error);
+  if(error)
+  {
+    printf("Program Creation Error: %d\n", error);
+    return false;
+  }
+  error = clBuildProgram(program, num_devices, devices, "", NULL, NULL);
   if(error)
   {
     char buildinfo[1000];
     size_t outputsize;
-    clGetProgramBuildInfo(moveprogram, devices[0], CL_PROGRAM_BUILD_LOG, 1000, buildinfo, &outputsize);
+    clGetProgramBuildInfo(program, devices[0], CL_PROGRAM_BUILD_LOG, 1000, buildinfo, &outputsize);
     printf("Compile Error for moveprogram: %d\n", error);
-    fwrite(buildinfo, min(outputsize, 1000), 1, stdout); 
+    fwrite(buildinfo, min(outputsize, 1000), 1, stdout);
+    return false;
   }
   //Create kernel from program
-  cl_components.opencl_kernel = clCreateKernel(moveprogram, "move_vertex", &error);  if(error)
+  for(int i = 0; i < num_kernels; i++)
   {
-    printf("Kernel Error: %d\n", error);
+    *kernels[i] = clCreateKernel(program, kernel_names[i], &error);
+    if(error)
+    {
+      printf("Kernel Error: %d\n", error);
+    }
   }
+  return true;
+}
 
-  //Compile source and create kernel
-  cl_program springprogram = NULL;
-  source_size = readFile("spring_kernel.cl", source);
-  if(source_size == 0) exit(-1);
-  springprogram = clCreateProgramWithSource(cl_components.opencl_context, 1, sourcelist, &source_size, NULL);
-  error = clBuildProgram(springprogram, 1, devices, "", NULL, NULL);
-  if(error)
-  {
-    char buildinfo[1000];
-    size_t outputsize;
-    clGetProgramBuildInfo(springprogram, devices[0], CL_PROGRAM_BUILD_LOG, 1000, buildinfo, &outputsize);
-    printf("Compile Error for moveprogram: %d\n", error);
-    fwrite(buildinfo, min(outputsize, 1000), 1, stdout); 
-  }
-  //Create kernel from program
-  cl_components.single_spring_kernel = clCreateKernel(springprogram, "spring_kernel_single", &error);
-  if(error)
-  {
-    printf("Kernel Error: %d\n", error);
-  }
-  cl_components.batch_spring_kernel = clCreateKernel(springprogram, "spring_kernel_batch", &error);
-  if(error)
-  {
-    printf("Kernel Error: %d\n", error);
-  }
-
-  //Compile source and create kernel
-  cl_program timestepprogram = NULL;
-  source_size = readFile("timestep.cl", source);
-  if(source_size == 0) exit(-1);
-  timestepprogram = clCreateProgramWithSource(cl_components.opencl_context, 1, sourcelist, &source_size, NULL);
-  error = clBuildProgram(timestepprogram, 1, devices, "", NULL, NULL);
-  if(error)
-  {
-    char buildinfo[1000];
-    size_t outputsize;
-    clGetProgramBuildInfo(timestepprogram, devices[0], CL_PROGRAM_BUILD_LOG, 1000, buildinfo, &outputsize);
-    printf("Compile Error for moveprogram: %d\n", error);
-    fwrite(buildinfo, min(outputsize, 1000), 1, stdout); 
-  }
-  //Create kernel from program
-  cl_components.euler_kernel = clCreateKernel(timestepprogram, "euler_kernel", &error);
-  if(error)
-  {
-    printf("Kernel Error: %d\n", error);
-  }
-
-  delete platforms;
-  delete devices;
+unsigned int readFile(char *path, char *buffer)
+{
+  unsigned int size;
+  FILE *input;
+  input = fopen(path, "rb");
+  if(!input) return 0;
+  fseek(input, 0, SEEK_END);
+  size = ftell(input);
+  rewind(input);
+  size = fread(buffer, sizeof(char), size, input);
+  fclose(input);
+  return size;
 }
 
 void tearDownCL()
