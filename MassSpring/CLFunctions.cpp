@@ -5,7 +5,10 @@ struct cl_system cl_components;
 
 void runTestKernel()
 {
-  float value[4];
+  //float value[4];
+  float rest;
+  float spring;
+  float damp;
   float timestep;
   glFinish();
   clEnqueueAcquireGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, NULL);
@@ -20,16 +23,52 @@ void runTestKernel()
   //                     0 * sizeof(float), 4 * sizeof(float), &value,
   //                     0, NULL, NULL);
 
-  value[0] = 1.0;
-  value[1] = 1.0;
-  value[2] = 0.0;
-  value[3] = 0.0;
+  ////Test movement using the simple move.cl kernel
+  //value[0] = 1.0;
+  //value[1] = 1.0;
+  //value[2] = 0.0;
+  //value[3] = 0.0;
+  //timestep = 0.01;
+  //size_t worksize[1] = {simulation.num_points};
+  //clSetKernelArg(cl_components.opencl_kernel, 0, sizeof(cl_uint), &(simulation.position));
+  //clSetKernelArg(cl_components.opencl_kernel, 1, sizeof(float[4]), value);
+  //clSetKernelArg(cl_components.opencl_kernel, 2, sizeof(float), &timestep);
+  //clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.opencl_kernel, 1, NULL, worksize, NULL, 0, NULL, NULL);
+
+
+  //zero accelerations for first two points
+  cl_float accelerations[8] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+  clEnqueueWriteBuffer(cl_components.command_queue, simulation.acceleration, true,
+                       0 * sizeof(float), 8 * sizeof(cl_float), &accelerations, 0, NULL, NULL);
+  //Calculate interaction for a single spring between first two points
+  size_t springworksize[1] = {1};
+  rest = 0.25;
+  spring = 100.0;
+  damp = 2.0;
+  cl_int pointa = 0;
+  cl_int pointb = 1;
+  clSetKernelArg(cl_components.single_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.single_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
+  clSetKernelArg(cl_components.single_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.single_spring_kernel, 3, sizeof(cl_int), &pointa);
+  clSetKernelArg(cl_components.single_spring_kernel, 4, sizeof(cl_int), &pointb);
+  clSetKernelArg(cl_components.single_spring_kernel, 5, sizeof(cl_float), &rest);
+  clSetKernelArg(cl_components.single_spring_kernel, 6, sizeof(cl_float), &spring);
+  clSetKernelArg(cl_components.single_spring_kernel, 7, sizeof(cl_float), &damp);
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.single_spring_kernel,
+                         1, NULL, springworksize, NULL, 0, NULL, NULL);
+  clFinish(cl_components.command_queue);
+
+  size_t eulerworksize[1] = {simulation.num_points};
   timestep = 0.01;
-  size_t worksize[1] = {simulation.num_points};
-  clSetKernelArg(cl_components.opencl_kernel, 0, sizeof(cl_uint), &(simulation.position));
-  clSetKernelArg(cl_components.opencl_kernel, 1, sizeof(float[4]), value);
-  clSetKernelArg(cl_components.opencl_kernel, 2, sizeof(float), &timestep);
-  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.opencl_kernel, 1, NULL, worksize, NULL, 0, NULL, NULL);
+  clSetKernelArg(cl_components.euler_kernel, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.euler_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
+  clSetKernelArg(cl_components.euler_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.euler_kernel, 3, sizeof(cl_float), &timestep);
+  clFinish(cl_components.command_queue);
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.euler_kernel,
+                         1, NULL, eulerworksize, NULL, 0, NULL, NULL);
+
 
   clEnqueueReleaseGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, NULL);
   clFinish(cl_components.command_queue);
@@ -115,15 +154,13 @@ void initOpenCL()
     printf("OpenCL Error: %d\n", error);
   }
 
-  //Create OpenCL buffer object attached to OpenGL vertex buffer object
-  simulation.position = clCreateFromGLBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE, simulation.position_buffer, NULL);
-
-  //Compile source and create kernel
-  cl_program moveprogram = NULL;
-  char source[1000];
-  size_t source_size = readFile("move.cl", source);
-  if(source_size == 0) exit(-1);
+  //Compile source and create kernel this is to use the old test kernel move.cl
+  size_t source_size;
+  char source[10000];
   const char *sourcelist[1] = {source};
+  cl_program moveprogram = NULL;
+  source_size = readFile("move.cl", source);
+  if(source_size == 0) exit(-1);
   moveprogram = clCreateProgramWithSource(cl_components.opencl_context, 1, sourcelist, &source_size, NULL);
   error = clBuildProgram(moveprogram, 1, devices, "", NULL, NULL);
   if(error)
@@ -136,6 +173,53 @@ void initOpenCL()
   }
   //Create kernel from program
   cl_components.opencl_kernel = clCreateKernel(moveprogram, "move_vertex", &error);  if(error)
+  {
+    printf("Kernel Error: %d\n", error);
+  }
+
+  //Compile source and create kernel
+  cl_program springprogram = NULL;
+  source_size = readFile("spring_kernel.cl", source);
+  if(source_size == 0) exit(-1);
+  springprogram = clCreateProgramWithSource(cl_components.opencl_context, 1, sourcelist, &source_size, NULL);
+  error = clBuildProgram(springprogram, 1, devices, "", NULL, NULL);
+  if(error)
+  {
+    char buildinfo[1000];
+    size_t outputsize;
+    clGetProgramBuildInfo(springprogram, devices[0], CL_PROGRAM_BUILD_LOG, 1000, buildinfo, &outputsize);
+    printf("Compile Error for moveprogram: %d\n", error);
+    fwrite(buildinfo, min(outputsize, 1000), 1, stdout); 
+  }
+  //Create kernel from program
+  cl_components.single_spring_kernel = clCreateKernel(springprogram, "spring_kernel_single", &error);
+  if(error)
+  {
+    printf("Kernel Error: %d\n", error);
+  }
+  cl_components.batch_spring_kernel = clCreateKernel(springprogram, "spring_kernel_batch", &error);
+  if(error)
+  {
+    printf("Kernel Error: %d\n", error);
+  }
+
+  //Compile source and create kernel
+  cl_program timestepprogram = NULL;
+  source_size = readFile("timestep.cl", source);
+  if(source_size == 0) exit(-1);
+  timestepprogram = clCreateProgramWithSource(cl_components.opencl_context, 1, sourcelist, &source_size, NULL);
+  error = clBuildProgram(timestepprogram, 1, devices, "", NULL, NULL);
+  if(error)
+  {
+    char buildinfo[1000];
+    size_t outputsize;
+    clGetProgramBuildInfo(timestepprogram, devices[0], CL_PROGRAM_BUILD_LOG, 1000, buildinfo, &outputsize);
+    printf("Compile Error for moveprogram: %d\n", error);
+    fwrite(buildinfo, min(outputsize, 1000), 1, stdout); 
+  }
+  //Create kernel from program
+  cl_components.euler_kernel = clCreateKernel(timestepprogram, "euler_kernel", &error);
+  if(error)
   {
     printf("Kernel Error: %d\n", error);
   }

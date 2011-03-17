@@ -32,7 +32,7 @@ void render()
   glutPostRedisplay();
 }
 
-void initGLUT()
+bool initGLUT()
 {
   //Initialize main window
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
@@ -43,26 +43,7 @@ void initGLUT()
   glClearColor(0.0, 0.0, 0.0, 1.0);
   glutCreateWindow("OpenCL Mass Spring Particle System");
 
-  //Check extensions and vertex buffer object support
-  if(glewInit() != GLEW_OK)
-  {
-    printf("Failed to initialize GLEW");
-    exit(1);
-  }
-  if(!glewIsSupported("GL_ARB_vertex_buffer_object"))
-  {
-    printf("OpenGL Vertex Buffer Object not supported. Exiting");
-    exit(10);
-  }
-  
-  //Create Vertex Buffer object
-  GLfloat data[4] = {0.0, -0.8, 0.0, 1.0};
-  glGenBuffers(1, &(simulation.position_buffer));
-  glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
-  glBufferData(GL_ARRAY_BUFFER, simulation.num_points * 4 * sizeof(GLfloat), &data, GL_DYNAMIC_DRAW);
-
   glutDisplayFunc(render);
-  glutIdleFunc(nextFrame);
 
   //Set up transformation matricies
   glViewport(0, 0, main_window.width, main_window.height);
@@ -72,6 +53,19 @@ void initGLUT()
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   gluLookAt(1.0, 0.5, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+
+  //Check extensions and vertex buffer object support
+  if(glewInit() != GLEW_OK)
+  {
+    printf("Failed to initialize GLEW\n");
+    return false;
+  }
+  if(!glewIsSupported("GL_ARB_vertex_buffer_object"))
+  {
+    printf("OpenGL Vertex Buffer Object not supported.\n");
+    return false;
+  }
+  return true;
 }
 
 void tearDownGL()

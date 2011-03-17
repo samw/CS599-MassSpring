@@ -117,6 +117,7 @@
   <ItemGroup>
     <None Include="move.cl" />
     <None Include="spring_kernel.cl" />
+    <None Include="timestep.cl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

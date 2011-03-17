@@ -43,5 +43,8 @@
     <None Include="spring_kernel.cl">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="timestep.cl">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

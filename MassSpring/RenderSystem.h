@@ -21,7 +21,7 @@ struct window
 extern struct window main_window;
 
 void render();
-void initGLUT();
+bool initGLUT();
 void tearDownGL();
 
 #endif
