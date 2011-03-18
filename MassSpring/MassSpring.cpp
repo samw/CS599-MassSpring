@@ -67,8 +67,6 @@ void initSystem()
   springs[0][1] = 1;
   simulation.springs = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                            sizeof(cl_int) * 1 * 2, springs, &error);
-  printf("bs %d\n", error);
-
   cl_float spring_properties[1][4];
   spring_properties[0][0] = 0.25;
   spring_properties[0][1] = 100.0;
@@ -76,7 +74,6 @@ void initSystem()
   spring_properties[0][3] = 0.0;
   simulation.springProperties = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                            sizeof(cl_float) * 1 * 4, spring_properties, &error);
-  printf("bsp %d\n", error);
 
   delete data;
 }

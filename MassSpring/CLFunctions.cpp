@@ -61,21 +61,14 @@ void runTestKernel()
   //                       1, NULL, springworksize, NULL, 0, NULL, NULL);
   //clFinish(cl_components.command_queue);
   
-  cl_int error;
   size_t springbatchsize[1] = {1};
-  error = clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
-  printf("a0 %d\n", error);
-  error = clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
-  printf("a1 %d\n", error);
-  error = clSetKernelArg(cl_components.batch_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
-  printf("a2 %d\n", error);
-  error = clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springs));
-  printf("a3 %d\n", error);
-  error = clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springProperties));
-  printf("a4 %d\n", error);
-  error = clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
+  clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
+  clSetKernelArg(cl_components.batch_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springs));
+  clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springProperties));
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
                          1, NULL, springbatchsize, NULL, 0, NULL, NULL);
-  printf("k %d\n", error);
   clFinish(cl_components.command_queue);
 
   size_t eulerworksize[1] = {simulation.num_points};
