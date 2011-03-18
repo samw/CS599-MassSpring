@@ -9,7 +9,8 @@ int main(int argc, char** argv)
   
   if(!initGLUT())
     exit(0);
-  initOpenCL();
+  if(!initOpenCL())
+    exit(0);
   initSystem();
   
   glutIdleFunc(nextFrame);

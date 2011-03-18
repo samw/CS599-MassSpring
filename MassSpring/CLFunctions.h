@@ -19,7 +19,7 @@ void runTestKernel();
 bool loadCLCodeFile(char *file, cl_context context, int num_devices, cl_device_id *devices,
                     int num_kernels, char **kernel_names, cl_kernel **kernels);
 unsigned int readFile(char *path, char *buffer);
-void initOpenCL();
+bool initOpenCL();
 void tearDownCL();
 
 #endif

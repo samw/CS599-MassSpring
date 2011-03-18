@@ -74,7 +74,7 @@ void runTestKernel()
   clFinish(cl_components.command_queue);
 }
 
-void initOpenCL()
+bool initOpenCL()
 {
   cl_int error;
   char buffer[100];
@@ -88,7 +88,7 @@ void initOpenCL()
   if(num_platforms == 0)
   {
     printf("no open cl devices");
-    exit(100);
+    return false;
   }
   printf("OpenCL Platforms:\n");
   for(unsigned int i = 0; i < num_platforms; i++)
@@ -106,11 +106,11 @@ void initOpenCL()
   cl_uint num_devices = 0;
   cl_device_id * devices;
   devices = new cl_device_id[max_devices];
-  error = clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_ALL, max_devices, devices, &num_devices);
+  error = clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_GPU, max_devices, devices, &num_devices);
   if(num_devices == 0)
   {
-    printf("no open cl devices");
-    exit(100);
+    printf("no GPU OpenCL devices");
+    return false;
   }
   printf("Devices on Platform %d:\n", platforms[0]);
   for(unsigned int i = 0; i < num_platforms; i++)
@@ -157,6 +157,8 @@ void initOpenCL()
 
   delete platforms;
   delete devices;
+  
+  return true;
 }
 
 bool loadCLCodeFile(char *file, cl_context context, int num_devices, cl_device_id *devices,
