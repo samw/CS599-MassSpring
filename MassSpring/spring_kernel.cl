@@ -1,8 +1,7 @@
 void __kernel spring_kernel_single(__global float4 *position,  __global float4 *velocity, __global float4 *acceleration,
-                            int a, int b, float restLength, float khook, float kdamp)
+                                   int a, int b, float restLength, float khook, float kdamp)
 {
-  float4 diff;
-  float4 vdiff;
+  float4 diff, vdiff;
   float len, forcemagnitude, dampingmagnitude;
   //Find position difference pDIFFERENCE(a, b, diff);
   diff = position[a] - position[b];
@@ -27,27 +26,26 @@ void __kernel spring_kernel_single(__global float4 *position,  __global float4 *
 //Note accumulation is not thread safe
 //Kernels operating on the same points must execute time exclusive of eachother
 
-void __kernel spring_kernel_batch(__constant float4 *position,  __constant float4 *velocity, __global float4 *acceleration,
-                            __constant int2 *springs, __constant float4 *spring_properties)
+void __kernel spring_kernel_batch(__global float4 *position,  __global float4 *velocity, __global float4 *acceleration,
+                                  __global int2 *springs, __global float4 *spring_properties)
 {
   float4 diff, vdiff, properties;
-  float restLength, khook, kdamp;
   float len, forcemagnitude, dampingmagnitude;
   int a, b;
   int spring = get_global_id(0);
   a = springs[spring].s0;
   b = springs[spring].s1;
-  //spring rest = properties.s0 //spring force = properties.s1; //sprint dampening = properties.s2;
   properties = spring_properties[spring];
+
   diff = position[a] - position[b];
   vdiff = velocity[a] - velocity[b];
-  dampingmagnitude = dot(diff, vdiff);
+  dampingmagnitude= dot(vdiff, diff);
   len = length(diff);
   if( len == 0.0 ) return;
   diff = normalize(diff);
-  forcemagnitude = -khook * (len - properties.s0);
-  forcemagnitude += -kdamp*properties.s2/len;
-  diff = diff * properties.s1;
+  forcemagnitude = -(properties.s1) * (len - (properties.s0));
+  forcemagnitude += -(properties.s2)*dampingmagnitude/len;
+  diff = diff * forcemagnitude;
   acceleration[a] += diff;
   acceleration[b] -= diff;
 }

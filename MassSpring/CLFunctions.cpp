@@ -5,7 +5,6 @@ struct cl_system cl_components;
 
 void runTestKernel()
 {
-  //float value[4];
   float rest;
   float spring;
   float damp;
@@ -15,6 +14,7 @@ void runTestKernel()
 
   ////Test movement to test reading and writing the opengl vertex buffer through open cl, no kernel used here
   //clEnqueueReadBuffer(simulation.command_queue, simulation.position, true,
+  //float value[4];
   //                    0 * sizeof(float), 4 * sizeof(float), &value,
   //                    0, NULL, NULL);
   //value[1] += 0.001;
@@ -24,6 +24,7 @@ void runTestKernel()
   //                     0, NULL, NULL);
 
   ////Test movement using the simple move.cl kernel
+  //float value[4];
   //value[0] = 1.0;
   //value[1] = 1.0;
   //value[2] = 0.0;
@@ -40,23 +41,41 @@ void runTestKernel()
   cl_float accelerations[8] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
   clEnqueueWriteBuffer(cl_components.command_queue, simulation.acceleration, true,
                        0 * sizeof(float), 8 * sizeof(cl_float), &accelerations, 0, NULL, NULL);
+
   //Calculate interaction for a single spring between first two points
-  size_t springworksize[1] = {1};
-  rest = 0.25;
-  spring = 100.0;
-  damp = 2.0;
-  cl_int pointa = 0;
-  cl_int pointb = 1;
-  clSetKernelArg(cl_components.single_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
-  clSetKernelArg(cl_components.single_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
-  clSetKernelArg(cl_components.single_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
-  clSetKernelArg(cl_components.single_spring_kernel, 3, sizeof(cl_int), &pointa);
-  clSetKernelArg(cl_components.single_spring_kernel, 4, sizeof(cl_int), &pointb);
-  clSetKernelArg(cl_components.single_spring_kernel, 5, sizeof(cl_float), &rest);
-  clSetKernelArg(cl_components.single_spring_kernel, 6, sizeof(cl_float), &spring);
-  clSetKernelArg(cl_components.single_spring_kernel, 7, sizeof(cl_float), &damp);
-  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.single_spring_kernel,
-                         1, NULL, springworksize, NULL, 0, NULL, NULL);
+  //size_t springworksize[1] = {1};
+  //rest = 0.25;
+  //spring = 100.0;
+  //damp = 2.0;
+  //cl_int pointa = 0;
+  //cl_int pointb = 1;
+  //clSetKernelArg(cl_components.single_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
+  //clSetKernelArg(cl_components.single_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
+  //clSetKernelArg(cl_components.single_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
+  //clSetKernelArg(cl_components.single_spring_kernel, 3, sizeof(cl_int), &pointa);
+  //clSetKernelArg(cl_components.single_spring_kernel, 4, sizeof(cl_int), &pointb);
+  //clSetKernelArg(cl_components.single_spring_kernel, 5, sizeof(cl_float), &rest);
+  //clSetKernelArg(cl_components.single_spring_kernel, 6, sizeof(cl_float), &spring);
+  //clSetKernelArg(cl_components.single_spring_kernel, 7, sizeof(cl_float), &damp);
+  //clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.single_spring_kernel,
+  //                       1, NULL, springworksize, NULL, 0, NULL, NULL);
+  //clFinish(cl_components.command_queue);
+  
+  cl_int error;
+  size_t springbatchsize[1] = {1};
+  error = clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
+  printf("a0 %d\n", error);
+  error = clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
+  printf("a1 %d\n", error);
+  error = clSetKernelArg(cl_components.batch_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
+  printf("a2 %d\n", error);
+  error = clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springs));
+  printf("a3 %d\n", error);
+  error = clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springProperties));
+  printf("a4 %d\n", error);
+  error = clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
+                         1, NULL, springbatchsize, NULL, 0, NULL, NULL);
+  printf("k %d\n", error);
   clFinish(cl_components.command_queue);
 
   size_t eulerworksize[1] = {simulation.num_points};
@@ -68,7 +87,6 @@ void runTestKernel()
   clFinish(cl_components.command_queue);
   clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.euler_kernel,
                          1, NULL, eulerworksize, NULL, 0, NULL, NULL);
-
 
   clEnqueueReleaseGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, NULL);
   clFinish(cl_components.command_queue);
