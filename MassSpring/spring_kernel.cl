@@ -52,3 +52,48 @@ void __kernel spring_kernel_batch(__global float4 *position,  __global float4 *v
 //Note accumulation is not thread safe
 //One solution is to keep separate batch of spring information sets that only contain each point once
 //And compute sets in separate time exclusive executions of this kernel
+
+void __kernel spring_kernel(__global float4 *position,  __global float4 *velocity,
+                                  __global int2 *springs, __global float4 *spring_properties,
+                                  __global float4 *spring_force)
+{
+  float4 diff, vdiff, properties;
+  float len, forcemagnitude, dampingmagnitude;
+  int a, b;
+  int spring = get_global_id(0);
+  a = springs[spring].s0;
+  b = springs[spring].s1;
+
+  diff = position[a] - position[b];
+  vdiff = velocity[a] - velocity[b];
+  dampingmagnitude= dot(vdiff, diff);
+  len = length(diff);
+  if( len == 0.0 ) return;
+  diff = normalize(diff);
+  forcemagnitude = -(spring_properties[spring].s1) * (len - (spring_properties[spring].s0));
+  forcemagnitude += -(spring_properties[spring].s2)*dampingmagnitude/len;
+  spring_force[spring] = diff * forcemagnitude;
+}
+
+// Blocksize should = SpringList length / work-items / 2;
+void __kernel accumulate_a1(__global float4 *acceleration, __global float4 *spring_force,
+                            __global int *vertex, __global int *spring, __global float* weight,
+                            int blocksize)
+{
+  int block = get_global_id(0) * 2;
+  int springindex = block * blocksize;
+  int i;
+  for(int i = 0; i < blocksize; i++)
+    acceleration[vertex[springindex+i]] = spring_force[spring[springindex]] * weight[springindex];
+}
+
+void __kernel accumulate_a2(__global float4 *acceleration, __global float4 *spring_force,
+                            __global int *vertex, __global int *spring, __global float* weight,
+                            int blocksize)
+{
+  int block = (get_global_id(0) * 2) + 1;
+  int springindex = block * blocksize;
+  int i;
+  for(int i = 0; i < blocksize; i++)
+    acceleration[vertex[springindex+i]] = spring_force[spring[springindex]] * weight[springindex];
+}
