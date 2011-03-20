@@ -12,6 +12,7 @@ struct cl_system
   cl_kernel batch_spring_kernel;
   cl_kernel euler_kernel;
   cl_kernel midpoint_kernel_1;
+  cl_kernel midpoint_kernel_2;
 };
 
 extern struct cl_system cl_components;

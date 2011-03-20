@@ -1,7 +1,7 @@
 #include "CLFunctions.h"
 #include "MassSpring.h"
 
-#define TS .01
+#define TS .001
 
 struct cl_system cl_components;
 
@@ -139,14 +139,14 @@ void runTestKernelMidPoint()
   clFinish(cl_components.command_queue);
 
   //timestep to the final point
-  size_t eulerworksize[1] = {simulation.num_points};
   timestep = TS;
-  clSetKernelArg(cl_components.euler_kernel, 0, sizeof(cl_uint), &(simulation.position));
-  clSetKernelArg(cl_components.euler_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
-  clSetKernelArg(cl_components.euler_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
-  clSetKernelArg(cl_components.euler_kernel, 3, sizeof(cl_float), &timestep);
-  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.euler_kernel,
-                         1, NULL, eulerworksize, NULL, 0, NULL, NULL);
+  clSetKernelArg(cl_components.midpoint_kernel_2, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.midpoint_kernel_2, 1, sizeof(cl_uint), &(simulation.velocity));
+  clSetKernelArg(cl_components.midpoint_kernel_2, 2, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.midpoint_kernel_2, 3, sizeof(cl_uint), &(simulation.bufferV));
+  clSetKernelArg(cl_components.midpoint_kernel_2, 4, sizeof(cl_float), &timestep);
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.midpoint_kernel_2,
+                         1, NULL, midpointworksize, NULL, 0, NULL, NULL);
   clFinish(cl_components.command_queue);
 
   clEnqueueReleaseGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, NULL);
@@ -230,9 +230,9 @@ bool initOpenCL()
   loadCLCodeFile("spring_kernel.cl", cl_components.opencl_context, num_devices, devices, 2,
                  spring_kernel_names, spring_kernels);
 
-  char *step_kernel_names[2] = {"euler_kernel", "midpoint_kernel_1"};
-  cl_kernel *step_kernels[2] = {&cl_components.euler_kernel, &cl_components.midpoint_kernel_1};
-  loadCLCodeFile("timestep.cl", cl_components.opencl_context, num_devices, devices, 2,
+  char *step_kernel_names[3] = {"euler_kernel", "midpoint_kernel_1", "midpoint_kernel_2"};
+  cl_kernel *step_kernels[3] = {&cl_components.euler_kernel, &cl_components.midpoint_kernel_1, &cl_components.midpoint_kernel_2};
+  loadCLCodeFile("timestep.cl", cl_components.opencl_context, num_devices, devices, 3,
                  step_kernel_names, step_kernels);
 
   delete platforms;
