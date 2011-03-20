@@ -51,6 +51,24 @@ void initSystem()
   }
   simulation.acceleration = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                            sizeof(cl_float) * 4 * simulation.num_points, data, &error);
+  for(int i = 0; i < simulation.num_points; i++)
+  {
+    data[(4*i) + 0] = 0.0;
+    data[(4*i) + 1] = 0.0;
+    data[(4*i) + 2] = 0.0;
+    data[(4*i) + 3] = 0.0;
+  }
+  simulation.bufferP = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                           sizeof(cl_float) * 4 * simulation.num_points, data, &error);
+  for(int i = 0; i < simulation.num_points; i++)
+  {
+    data[(4*i) + 0] = 0.0;
+    data[(4*i) + 1] = 0.0;
+    data[(4*i) + 2] = 0.0;
+    data[(4*i) + 3] = 0.0;
+  }
+  simulation.bufferV = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                           sizeof(cl_float) * 4 * simulation.num_points, data, &error);
 
   for(int i = 0; i < simulation.num_points; i++)
   {
@@ -80,7 +98,7 @@ void initSystem()
 
 void nextFrame()
 {
-  runTestKernel();
+  runTestKernelMidPoint();
 }
 
 void cleanup()

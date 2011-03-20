@@ -19,6 +19,8 @@ struct system
   cl_mem acceleration;
   cl_mem springs;
   cl_mem springProperties;
+  cl_mem bufferP;
+  cl_mem bufferV;
 };
 extern struct system simulation;
 
