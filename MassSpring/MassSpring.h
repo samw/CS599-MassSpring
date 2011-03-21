@@ -21,6 +21,7 @@ struct system
   cl_mem springProperties;
   cl_mem bufferP;
   cl_mem bufferV;
+  cl_mem *springBatches;
 };
 extern struct system simulation;
 

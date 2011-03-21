@@ -1,7 +1,6 @@
 #ifndef _RENDERSYSTEM_H_
 #define _RENDERSYSTEM_H_
 
-#include "MassSpring.h"
 #include <GL\glew.h>
 #include <GL\wglew.h>
 #include <gl\glut.h>

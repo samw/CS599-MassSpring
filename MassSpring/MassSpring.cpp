@@ -1,16 +1,18 @@
 #include "MassSpring.h"
 #include "RenderSystem.h"
 #include "CLFunctions.h"
+#include "loader.h"
 
 struct system simulation;
 
 int main(int argc, char** argv)
-{
-  
+{  
   if(!initGLUT())
     exit(0);
   if(!initOpenCL())
     exit(0);
+  
+  //generateJelloCube("cubeEdges","edgeColors");
   initSystem();
   
   glutIdleFunc(nextFrame);
@@ -51,25 +53,10 @@ void initSystem()
   }
   simulation.acceleration = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                            sizeof(cl_float) * 4 * simulation.num_points, data, &error);
-  for(int i = 0; i < simulation.num_points; i++)
-  {
-    data[(4*i) + 0] = 0.0;
-    data[(4*i) + 1] = 0.0;
-    data[(4*i) + 2] = 0.0;
-    data[(4*i) + 3] = 0.0;
-  }
   simulation.bufferP = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                            sizeof(cl_float) * 4 * simulation.num_points, data, &error);
-  for(int i = 0; i < simulation.num_points; i++)
-  {
-    data[(4*i) + 0] = 0.0;
-    data[(4*i) + 1] = 0.0;
-    data[(4*i) + 2] = 0.0;
-    data[(4*i) + 3] = 0.0;
-  }
   simulation.bufferV = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                            sizeof(cl_float) * 4 * simulation.num_points, data, &error);
-
   for(int i = 0; i < simulation.num_points; i++)
   {
     data[(4*i) + 0] = 0.0;

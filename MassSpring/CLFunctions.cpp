@@ -1,5 +1,5 @@
-#include "CLFunctions.h"
 #include "MassSpring.h"
+#include "CLFunctions.h"
 
 #define TS .001
 
@@ -93,7 +93,7 @@ void runTestKernelMidPoint()
   float spring;
   float damp;
   float timestep;
-  glFinish();
+  //glFinish();
   clEnqueueAcquireGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, NULL);
 
   //zero accelerations for first two points
@@ -239,6 +239,11 @@ bool initOpenCL()
   delete devices;
   
   return true;
+}
+
+void runBatchTestKernel()
+{
+
 }
 
 bool loadCLCodeFile(char *file, cl_context context, int num_devices, cl_device_id *devices,

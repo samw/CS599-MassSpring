@@ -108,11 +108,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CLFunctions.cpp" />
+    <ClCompile Include="loader.cpp" />
     <ClCompile Include="MassSpring.cpp" />
     <ClCompile Include="RenderSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CLFunctions.h" />
+    <ClInclude Include="loader.h" />
     <ClInclude Include="MassSpring.h" />
     <ClInclude Include="RenderSystem.h" />
   </ItemGroup>

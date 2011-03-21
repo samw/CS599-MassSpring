@@ -1,5 +1,5 @@
-#include "RenderSystem.h"
 #include "MassSpring.h"
+#include "RenderSystem.h"
 
 struct input input_state;
 struct window main_window;
@@ -52,7 +52,7 @@ bool initGLUT()
   gluPerspective(90.0, (float)main_window.width/(float)main_window.height, 0.1, 10.0);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  gluLookAt(1.0, 0.5, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+  gluLookAt(1.0, 1.0, 1.0, 0.0, 0., 0.0, 0.0, 1.0, 0.0);
 
   //Check extensions and vertex buffer object support
   if(glewInit() != GLEW_OK)
