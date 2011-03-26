@@ -20,7 +20,7 @@ void render()
   glVertex3f(0.0, 0.0,0.1);
   glEnd();
 
-  glPointSize(5);
+  glPointSize(2);
   glColor3f(1.0, 1.0, 0.0);
   glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
   glVertexPointer(4, GL_FLOAT, 0, 0);
