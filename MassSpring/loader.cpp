@@ -11,11 +11,11 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   int num_colors = 0;
   int vert_per_dim = 0;
   float (*vertexPositions)[4];
-  int (*springs)[2];
-  int *springColors;
-  int *batchcount;
+  int (*springs)[2]; //vertecies of springs
+  int *springColors; //colors for spings listed in order of 'springs'
+  int *batchcount;  //# of springs in each batch
   int *fillcount;
-  int **batches;
+  int **batches; //array containing spring index from 'springs' in separate batches
   cl_int error;
 
   springfile = fopen(springsfilename, "r");
@@ -81,9 +81,16 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
     batches[springColors[i]][fillcount[springColors[i]]++]= i;
   }
 
-  //STORE INFORMATION ONTO VIDEOCARD
-  //Put vertex positions into vertex buffer
+  //STORE SYSTEM INFORMATION AND INFORMATION ONTO VIDEOCARD
   simulation.num_points = num_vertecies;
+  simulation.num_batches = num_colors;
+  simulation.batch_sizes = new int[num_colors];
+  for(int i = 0; i < num_colors; i++)
+  {
+    simulation.batch_sizes[i] = batchcount[i];
+  }
+  
+  //Put vertex positions into vertex buffer
   //Create OpenGL buffer
   glGenBuffers(1, &(simulation.position_buffer));
   glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
@@ -113,31 +120,37 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   simulation.bufferV = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                       sizeof(cl_float) * 4 * simulation.num_points, vertexPositions, &error);
   if(error) printf("V Buffer Error: %d", error);
+
   //Put spring information into videocard (spring information is the 2 vertecies it connects)
-  simulation.springs = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                           sizeof(cl_int) * 2 * num_springs, springs, &error);
-  if(error) printf("Spring Buffer Error: %d", error);
-  //Generate spring properties then put it into videocard
-  float (*spring_properties)[4];
-  spring_properties = new float[num_springs][4];
-  for(int i = 0; i < num_springs; i++)
-  {
-  spring_properties[i][0] = 0.05;
-  spring_properties[i][1] = 100.0;
-  spring_properties[i][2] = 2.0;
-  spring_properties[i][3] = 0.0;
-  }
-  simulation.springProperties = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                           sizeof(cl_float) * 4 * num_springs, spring_properties, &error);
-  if(error) printf("Spring Properties Buffer Error: %d", error);
-  delete spring_properties;
-  //But spring batch membership information into video cards.
+  //At same time fill in spring properties
+  //We need to put information as individual batches
   simulation.springBatches = new cl_mem[num_colors];
+  simulation.springPropertyBatches = new cl_mem[num_colors];
+  float (*spring_properties)[4];
+  int (*batchedsprings)[2];
   for(int i = 0; i < num_colors; i++)
   {
+    spring_properties = new float[batchcount[i]][4];
+    batchedsprings = new int[batchcount[i]][2];
+    //for each batch copy the member springs into bachedspring list of springs
+    for(int j = 0; j < batchcount[i]; j++)
+    {
+      spring_properties[j][0] = 0.1; //reset length 
+      //really all the springs should have differnt rest lenghts but this is for testing
+      spring_properties[j][1] = 100.0; //spring force
+      spring_properties[j][2] = 10.0; //damepning force
+      spring_properties[j][3] = 0.0; //<empty>
+      batchedsprings[j][0] = springs[(batches[i][j])][0];
+      batchedsprings[j][1] = springs[(batches[i][j])][1];
+    }
     simulation.springBatches[i] = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                           sizeof(cl_int) * 1 * batchcount[i], batches[i], &error);
-    if(error) printf("Batch Buffer %d Error: %d", i, error);
+      sizeof(cl_int) * 2 * batchcount[i], batchedsprings, &error);
+    if(error) printf("Spring Buffer Error: %d", error);
+    simulation.springPropertyBatches[i] = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+      sizeof(cl_float) * 4 * batchcount[i], spring_properties, &error);
+    if(error) printf("Spring Properties Buffer Error: %d", error);
+    delete[] batchedsprings;
+    delete[] spring_properties;
   }
 
   //DONE NOW CLEAN UP
@@ -145,9 +158,9 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   {
     delete batches[i];
   }
-  delete batches;
+  delete[] batches;
   delete batchcount;
   delete springColors;
-  delete springs;
-  delete vertexPositions;
+  delete[] springs;
+  delete[] vertexPositions;
 }

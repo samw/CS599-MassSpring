@@ -5,146 +5,143 @@
 
 struct cl_system cl_components;
 
+void configureTestKernel()
+{
+  //acceleration kernel init
+  cl_float initvector[4] = {0.0,0.0,0.0,0.0};
+  clSetKernelArg(cl_components.acceleration_kernel, 0, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.acceleration_kernel, 1, sizeof(cl_float4), &(simulation.acceleration));
+  
+  //spring kernel init
+  clSetKernelArg(cl_components.single_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.single_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
+  clSetKernelArg(cl_components.single_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
+  
+  //spring batch kernel init
+  clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
+  clSetKernelArg(cl_components.batch_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springs));
+  clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springProperties));
+  
+  //euler kernel init
+  float timestep = TS;
+  clSetKernelArg(cl_components.euler_kernel, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.euler_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
+  clSetKernelArg(cl_components.euler_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.euler_kernel, 3, sizeof(cl_float), &timestep);
+}
+
 void runTestKernel()
 {
   float rest;
   float spring;
   float damp;
-  float timestep;
   glFinish();
   clEnqueueAcquireGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, NULL);
 
-  ////Test movement to test reading and writing the opengl vertex buffer through open cl, no kernel used here
-  //clEnqueueReadBuffer(simulation.command_queue, simulation.position, true,
-  //float value[4];
-  //                    0 * sizeof(float), 4 * sizeof(float), &value,
-  //                    0, NULL, NULL);
-  //value[1] += 0.001;
-  //value[2] += 0.001;
-  //clEnqueueWriteBuffer(simulation.command_queue, simulation.position, true,
-  //                     0 * sizeof(float), 4 * sizeof(float), &value,
-  //                     0, NULL, NULL);
-
-  ////Test movement using the simple move.cl kernel
-  //float value[4];
-  //value[0] = 1.0;
-  //value[1] = 1.0;
-  //value[2] = 0.0;
-  //value[3] = 0.0;
-  //timestep = 0.01;
-  //size_t worksize[1] = {simulation.num_points};
-  //clSetKernelArg(cl_components.opencl_kernel, 0, sizeof(cl_uint), &(simulation.position));
-  //clSetKernelArg(cl_components.opencl_kernel, 1, sizeof(float[4]), value);
-  //clSetKernelArg(cl_components.opencl_kernel, 2, sizeof(float), &timestep);
-  //clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.opencl_kernel, 1, NULL, worksize, NULL, 0, NULL, NULL);
-
-
   //zero accelerations for first two points
-  cl_float accelerations[8] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
-  clEnqueueWriteBuffer(cl_components.command_queue, simulation.acceleration, true,
-                       0 * sizeof(float), 8 * sizeof(cl_float), &accelerations, 0, NULL, NULL);
+  size_t numvertecies[1] = {simulation.num_points};
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
+                         1, NULL, numvertecies, NULL, 0, NULL, NULL);
+  clFinish(cl_components.command_queue);
 
   //Calculate interaction for a single spring between first two points
-  //size_t springworksize[1] = {1};
-  //rest = 0.25;
-  //spring = 100.0;
-  //damp = 2.0;
-  //cl_int pointa = 0;
-  //cl_int pointb = 1;
-  //clSetKernelArg(cl_components.single_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
-  //clSetKernelArg(cl_components.single_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
-  //clSetKernelArg(cl_components.single_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
-  //clSetKernelArg(cl_components.single_spring_kernel, 3, sizeof(cl_int), &pointa);
-  //clSetKernelArg(cl_components.single_spring_kernel, 4, sizeof(cl_int), &pointb);
-  //clSetKernelArg(cl_components.single_spring_kernel, 5, sizeof(cl_float), &rest);
-  //clSetKernelArg(cl_components.single_spring_kernel, 6, sizeof(cl_float), &spring);
-  //clSetKernelArg(cl_components.single_spring_kernel, 7, sizeof(cl_float), &damp);
-  //clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.single_spring_kernel,
-  //                       1, NULL, springworksize, NULL, 0, NULL, NULL);
-  //clFinish(cl_components.command_queue);
-  
-  size_t springbatchsize[1] = {1};
-  clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
-  clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
-  clSetKernelArg(cl_components.batch_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
-  clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springs));
-  clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springProperties));
-  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
-                         1, NULL, springbatchsize, NULL, 0, NULL, NULL);
+  size_t springworksize[1] = {1};
+  rest = 0.25;
+  spring = 100.0;
+  damp = 2.0;
+  cl_int pointa = 0;
+  cl_int pointb = 1;
+  clSetKernelArg(cl_components.single_spring_kernel, 3, sizeof(cl_int), &pointa);
+  clSetKernelArg(cl_components.single_spring_kernel, 4, sizeof(cl_int), &pointb);
+  clSetKernelArg(cl_components.single_spring_kernel, 5, sizeof(cl_float), &rest);
+  clSetKernelArg(cl_components.single_spring_kernel, 6, sizeof(cl_float), &spring);
+  clSetKernelArg(cl_components.single_spring_kernel, 7, sizeof(cl_float), &damp);
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.single_spring_kernel,
+                         1, NULL, springworksize, NULL, 0, NULL, NULL);
   clFinish(cl_components.command_queue);
+  
+  //size_t springbatchsize[1] = {1};
+  //clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
+  //                       1, NULL, springbatchsize, NULL, 0, NULL, NULL);
+  //clFinish(cl_components.command_queue);
 
   size_t eulerworksize[1] = {simulation.num_points};
-  timestep = TS;
-  clSetKernelArg(cl_components.euler_kernel, 0, sizeof(cl_uint), &(simulation.position));
-  clSetKernelArg(cl_components.euler_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
-  clSetKernelArg(cl_components.euler_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
-  clSetKernelArg(cl_components.euler_kernel, 3, sizeof(cl_float), &timestep);
-  clFinish(cl_components.command_queue);
   clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.euler_kernel,
                          1, NULL, eulerworksize, NULL, 0, NULL, NULL);
+  clFinish(cl_components.command_queue);
 
   clEnqueueReleaseGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, NULL);
   clFinish(cl_components.command_queue);
 }
 
-void runTestKernelMidPoint()
+void configureTestKernelMidPoint()
 {
-  float rest;
-  float spring;
-  float damp;
-  float timestep;
-  //glFinish();
-  clEnqueueAcquireGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, NULL);
+  //acceleration kernel
+  cl_float initvector[4] = {0.0,0.0,0.0,0.0};
+  clSetKernelArg(cl_components.acceleration_kernel, 0, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.acceleration_kernel, 1, sizeof(cl_float4), &(simulation.acceleration));
 
-  //zero accelerations for first two points
-  cl_float accelerations[8] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
-  clEnqueueWriteBuffer(cl_components.command_queue, simulation.acceleration, true,
-                       0 * sizeof(float), 8 * sizeof(cl_float), &accelerations, 0, NULL, NULL);
-  //Calculate the spring forces at time t
-  size_t springbatchsize[1] = {1};
-  clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
-  clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
+  //spring kernel (non-changing arguments)
   clSetKernelArg(cl_components.batch_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
   clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springs));
   clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springProperties));
-  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
-                         1, NULL, springbatchsize, NULL, 0, NULL, NULL);
-  clFinish(cl_components.command_queue);
-
-  //timestep to the midpoint at time t + TS/2
-  size_t midpointworksize[1] = {simulation.num_points};
-  timestep = TS /2;
+  
+  //midpoint1 kernel
+  float timestep = TS /2;
   clSetKernelArg(cl_components.midpoint_kernel_1, 0, sizeof(cl_uint), &(simulation.position));
   clSetKernelArg(cl_components.midpoint_kernel_1, 1, sizeof(cl_uint), &(simulation.velocity));
   clSetKernelArg(cl_components.midpoint_kernel_1, 2, sizeof(cl_uint), &(simulation.acceleration));
   clSetKernelArg(cl_components.midpoint_kernel_1, 3, sizeof(cl_uint), &(simulation.bufferP));
   clSetKernelArg(cl_components.midpoint_kernel_1, 4, sizeof(cl_uint), &(simulation.bufferV));
   clSetKernelArg(cl_components.midpoint_kernel_1, 5, sizeof(cl_float), &timestep);
-  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.midpoint_kernel_1,
-                         1, NULL, midpointworksize, NULL, 0, NULL, NULL);
-  clFinish(cl_components.command_queue);
 
-  //rezero acceleration for next calculation
-  clEnqueueWriteBuffer(cl_components.command_queue, simulation.acceleration, true,
-                       0 * sizeof(float), 8 * sizeof(cl_float), &accelerations, 0, NULL, NULL);
-  clFinish(cl_components.command_queue);
-  
-  clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.bufferP));
-  clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.bufferV));
-  clSetKernelArg(cl_components.batch_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
-  clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springs));
-  clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springProperties));
-  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
-                         1, NULL, springbatchsize, NULL, 0, NULL, NULL);
-  clFinish(cl_components.command_queue);
-
-  //timestep to the final point
+  //midpoint2 kernel
   timestep = TS;
   clSetKernelArg(cl_components.midpoint_kernel_2, 0, sizeof(cl_uint), &(simulation.position));
   clSetKernelArg(cl_components.midpoint_kernel_2, 1, sizeof(cl_uint), &(simulation.velocity));
   clSetKernelArg(cl_components.midpoint_kernel_2, 2, sizeof(cl_uint), &(simulation.acceleration));
   clSetKernelArg(cl_components.midpoint_kernel_2, 3, sizeof(cl_uint), &(simulation.bufferV));
   clSetKernelArg(cl_components.midpoint_kernel_2, 4, sizeof(cl_float), &timestep);
+}
+
+void runTestKernelMidPoint()
+{
+  //glFinish();
+  clEnqueueAcquireGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, NULL);
+
+  //zero accelerations for first two points
+  size_t numvertecies[1] = {simulation.num_points};
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
+                         1, NULL, numvertecies, NULL, 0, NULL, NULL);
+  clFinish(cl_components.command_queue);
+  //Calculate the spring forces at time t
+  size_t springbatchsize[1] = {1};
+  clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
+                         1, NULL, springbatchsize, NULL, 0, NULL, NULL);
+  clFinish(cl_components.command_queue);
+
+  //timestep to the midpoint at time t + TS/2
+  size_t midpointworksize[1] = {simulation.num_points};
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.midpoint_kernel_1,
+                         1, NULL, midpointworksize, NULL, 0, NULL, NULL);
+  clFinish(cl_components.command_queue);
+
+  //rezero acceleration for next calculation
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
+                         1, NULL, numvertecies, NULL, 0, NULL, NULL);
+  clFinish(cl_components.command_queue);
+  
+  clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.bufferP));
+  clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.bufferV));
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
+                         1, NULL, springbatchsize, NULL, 0, NULL, NULL);
+  clFinish(cl_components.command_queue);
+
+  //timestep to the final point
   clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.midpoint_kernel_2,
                          1, NULL, midpointworksize, NULL, 0, NULL, NULL);
   clFinish(cl_components.command_queue);
@@ -153,6 +150,55 @@ void runTestKernelMidPoint()
   clFinish(cl_components.command_queue);
 }
 
+void configureCubeTestKernel()
+{
+  //acceleration kernel init
+  cl_float initvector[4] = {0.0,0.0,0.0,0.0};
+  clSetKernelArg(cl_components.acceleration_kernel, 0, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.acceleration_kernel, 1, sizeof(cl_float4), &(simulation.acceleration));
+  
+  //spring batch kernel init
+  clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
+  clSetKernelArg(cl_components.batch_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
+  
+  //euler kernel init
+  float timestep = TS;
+  clSetKernelArg(cl_components.euler_kernel, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.euler_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
+  clSetKernelArg(cl_components.euler_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.euler_kernel, 3, sizeof(cl_float), &timestep);
+}
+
+void runCubeTestKernel()
+{
+  glFinish();
+  clEnqueueAcquireGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, NULL);
+
+  //zero accelerations for first two points
+  size_t numvertecies[1] = {simulation.num_points};
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
+                         1, NULL, numvertecies, NULL, 0, NULL, NULL);
+  clFinish(cl_components.command_queue);
+
+  for(int i = 0; i < simulation.num_batches; i++)
+  {
+    size_t springbatchsize[1] = {simulation.batch_sizes[i]};
+    clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springBatches[i]));
+    clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springPropertyBatches[i]));
+    clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
+      1, NULL, springbatchsize, NULL, 0, NULL, NULL);
+    clFinish(cl_components.command_queue);
+  }
+
+  size_t eulerworksize[1] = {simulation.num_points};
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.euler_kernel,
+                         1, NULL, eulerworksize, NULL, 0, NULL, NULL);
+  clFinish(cl_components.command_queue);
+
+  clEnqueueReleaseGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, NULL);
+  clFinish(cl_components.command_queue);
+}
 
 bool initOpenCL()
 {
@@ -220,10 +266,15 @@ bool initOpenCL()
   }
   
   //Load all kernels from cl code files
-  char *move_kernel_names[1] = {"move_vertex"};
-  cl_kernel *move_kernels[1] = {&cl_components.opencl_kernel};
-  loadCLCodeFile("move.cl", cl_components.opencl_context, num_devices, devices, 1,
-                 move_kernel_names, move_kernels);
+  //char *move_kernel_names[1] = {"move_vertex"};
+  //cl_kernel *move_kernels[1] = {&cl_components.opencl_kernel};
+  //loadCLCodeFile("move.cl", cl_components.opencl_context, num_devices, devices, 1,
+  //               move_kernel_names, move_kernels);
+
+  char *acceleration_kernel_names[1] = {"acceleration_kernel"};
+  cl_kernel *acceleration_kernels[1] = {&cl_components.acceleration_kernel};
+  loadCLCodeFile("accelinit.cl", cl_components.opencl_context, num_devices, devices, 1,
+                 acceleration_kernel_names, acceleration_kernels);
   
   char *spring_kernel_names[2] = {"spring_kernel_single", "spring_kernel_batch"};
   cl_kernel *spring_kernels[2] = {&cl_components.single_spring_kernel, &cl_components.batch_spring_kernel};
@@ -241,19 +292,17 @@ bool initOpenCL()
   return true;
 }
 
-void runBatchTestKernel()
-{
-
-}
-
 bool loadCLCodeFile(char *file, cl_context context, int num_devices, cl_device_id *devices,
                     int num_kernels, char **kernel_names, cl_kernel **kernels)
 {
   cl_int error = 0;
-  //Compile source and create kernel this is to use the old test kernel move.cl
+  //Compile source and create kernel
   size_t source_size;
   char source[10000];
   const char *sourcelist[1] = {source};
+
+  printf("Compiling file %s\n", file);
+
   cl_program program = NULL;
   source_size = readFile(file, source);
   if(source_size == 0)
@@ -272,9 +321,10 @@ bool loadCLCodeFile(char *file, cl_context context, int num_devices, cl_device_i
   {
     char buildinfo[1000];
     size_t outputsize;
+    printf("Compile Error for kernel: %d\n", error);
     clGetProgramBuildInfo(program, devices[0], CL_PROGRAM_BUILD_LOG, 1000, buildinfo, &outputsize);
-    printf("Compile Error for moveprogram: %d\n", error);
     fwrite(buildinfo, min(outputsize, 1000), 1, stdout);
+    printf("\n");
     return false;
   }
   //Create kernel from program

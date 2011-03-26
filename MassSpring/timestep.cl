@@ -1,5 +1,5 @@
 //Performs one step of Euler Integration
-void __kernel euler_kernel(__global float4 *positions,
+__kernel void euler_kernel(__global float4 *positions,
                            __global float4 *velocities,
                            __global float4 *accelerations,
                            float timestep)
@@ -9,7 +9,7 @@ void __kernel euler_kernel(__global float4 *positions,
   velocities[vertex] += timestep * accelerations[vertex];
 }
 
-void __kernel midpoint_kernel_1(__global float4 *positions,
+__kernel void midpoint_kernel_1(__global float4 *positions,
                                 __global float4 *velocities,
                                 __global float4 *accelerations,
 						                    __global float4 *bufferP,
@@ -23,7 +23,7 @@ void __kernel midpoint_kernel_1(__global float4 *positions,
 	bufferV[vertex] += timestep * accelerations[vertex];
 }
 
-void __kernel midpoint_kernel_2(__global float4 *positions,
+__kernel void midpoint_kernel_2(__global float4 *positions,
                                 __global float4 *velocities,
                                 __global float4 *accelerations,
 						                    __global float4 *bufferV,

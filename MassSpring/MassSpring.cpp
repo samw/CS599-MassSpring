@@ -12,10 +12,17 @@ int main(int argc, char** argv)
   if(!initOpenCL())
     exit(0);
   
-  //generateJelloCube("cubeEdges","edgeColors");
-  initSystem();
-  
-  glutIdleFunc(nextFrame);
+  //initSystem();
+  //configureTestKernel();
+  //glutIdleFunc(runTestKernel);
+
+  //initSystem();
+  //configureTestKernelMidPoint();
+  //glutIdleFunc(runTestKernelMidPoint);
+
+  generateJelloCube("cubeEdges","edgeColors");
+  configureCubeTestKernel();
+  glutIdleFunc(runCubeTestKernel);
 
   //atexit(cleanup);
   glutMainLoop();
@@ -81,11 +88,6 @@ void initSystem()
                                            sizeof(cl_float) * 1 * 4, spring_properties, &error);
 
   delete data;
-}
-
-void nextFrame()
-{
-  runTestKernelMidPoint();
 }
 
 void cleanup()

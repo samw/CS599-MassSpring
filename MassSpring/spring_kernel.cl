@@ -1,4 +1,4 @@
-void __kernel spring_kernel_single(__global float4 *position,  __global float4 *velocity, __global float4 *acceleration,
+__kernel void spring_kernel_single(__global float4 *position,  __global float4 *velocity, __global float4 *acceleration,
                                    int a, int b, float restLength, float khook, float kdamp)
 {
   float4 diff, vdiff;
@@ -26,7 +26,7 @@ void __kernel spring_kernel_single(__global float4 *position,  __global float4 *
 //Note accumulation is not thread safe
 //Kernels operating on the same points must execute time exclusive of eachother
 
-void __kernel spring_kernel_batch(__global float4 *position,  __global float4 *velocity, __global float4 *acceleration,
+__kernel void spring_kernel_batch(__global float4 *position,  __global float4 *velocity, __global float4 *acceleration,
                                   __global int2 *springs, __global float4 *spring_properties)
 {
   float4 diff, vdiff, properties;
@@ -53,7 +53,7 @@ void __kernel spring_kernel_batch(__global float4 *position,  __global float4 *v
 //One solution is to keep separate batch of spring information sets that only contain each point once
 //And compute sets in separate time exclusive executions of this kernel
 
-void __kernel spring_kernel(__global float4 *position,  __global float4 *velocity,
+__kernel void spring_kernel(__global float4 *position,  __global float4 *velocity,
                                   __global int2 *springs, __global float4 *spring_properties,
                                   __global float4 *spring_force)
 {
@@ -76,7 +76,7 @@ void __kernel spring_kernel(__global float4 *position,  __global float4 *velocit
 }
 
 // Blocksize should = SpringList length / work-items / 2;
-void __kernel accumulate_a1(__global float4 *acceleration, __global float4 *spring_force,
+__kernel void accumulate_a1(__global float4 *acceleration, __global float4 *spring_force,
                             __global int *vertex, __global int *spring, __global float* weight,
                             int blocksize)
 {
@@ -87,7 +87,7 @@ void __kernel accumulate_a1(__global float4 *acceleration, __global float4 *spri
     acceleration[vertex[springindex+i]] = spring_force[spring[springindex]] * weight[springindex];
 }
 
-void __kernel accumulate_a2(__global float4 *acceleration, __global float4 *spring_force,
+__kernel void accumulate_a2(__global float4 *acceleration, __global float4 *spring_force,
                             __global int *vertex, __global int *spring, __global float* weight,
                             int blocksize)
 {

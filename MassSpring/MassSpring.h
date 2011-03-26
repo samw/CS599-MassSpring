@@ -21,12 +21,14 @@ struct system
   cl_mem springProperties;
   cl_mem bufferP;
   cl_mem bufferV;
+  int num_batches;
+  int *batch_sizes;
   cl_mem *springBatches;
+  cl_mem *springPropertyBatches;
 };
 extern struct system simulation;
 
 void initSystem();
-void nextFrame();
 void cleanup();
 
 #endif

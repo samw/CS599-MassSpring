@@ -8,6 +8,7 @@ struct cl_system
   cl_context opencl_context;
   cl_command_queue command_queue;
   cl_kernel opencl_kernel;
+  cl_kernel acceleration_kernel;
   cl_kernel single_spring_kernel;
   cl_kernel batch_spring_kernel;
   cl_kernel euler_kernel;
@@ -17,9 +18,12 @@ struct cl_system
 
 extern struct cl_system cl_components;
 
+void configureTestKernel();
 void runTestKernel();
 void runTestKernelMidPoint();
-void runBatchTestKernel();
+void configureTestKernelMidPoint();
+void configureCubeTestKernel();
+void runCubeTestKernel();
 bool loadCLCodeFile(char *file, cl_context context, int num_devices, cl_device_id *devices,
                     int num_kernels, char **kernel_names, cl_kernel **kernels);
 unsigned int readFile(char *path, char *buffer);

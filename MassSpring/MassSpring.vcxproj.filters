@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Resource Files\cube">
+      <UniqueIdentifier>{d8c58707-f9f6-4a08-a3ae-648b01d45b23}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MassSpring.cpp">
@@ -51,6 +54,15 @@
     </None>
     <None Include="timestep.cl">
       <Filter>Resource Files</Filter>
+    </None>
+    <None Include="accelinit.cl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="cubeEdges">
+      <Filter>Resource Files\cube</Filter>
+    </None>
+    <None Include="edgeColors">
+      <Filter>Resource Files\cube</Filter>
     </None>
   </ItemGroup>
 </Project>

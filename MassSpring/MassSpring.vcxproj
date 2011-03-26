@@ -119,6 +119,9 @@
     <ClInclude Include="RenderSystem.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="accelinit.cl" />
+    <None Include="cubeEdges" />
+    <None Include="edgeColors" />
     <None Include="move.cl" />
     <None Include="spring_kernel.cl" />
     <None Include="timestep.cl" />
