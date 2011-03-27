@@ -1,7 +1,7 @@
 #include "MassSpring.h"
 #include "CLFunctions.h"
 
-#define TS .009
+#define TS .02
 
 struct cl_system cl_components;
 
