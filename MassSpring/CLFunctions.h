@@ -14,6 +14,10 @@ struct cl_system
   cl_kernel euler_kernel;
   cl_kernel midpoint_kernel_1;
   cl_kernel midpoint_kernel_2;
+  cl_kernel rk4_kernel_1;
+  cl_kernel rk4_kernel_2;
+  cl_kernel rk4_kernel_3;
+  cl_kernel rk4_kernel_4;
 };
 
 extern struct cl_system cl_components;
@@ -21,7 +25,9 @@ extern struct cl_system cl_components;
 void configureTestKernel();
 void runTestKernel();
 void runTestKernelMidPoint();
+void runTestKernelRK4();
 void configureTestKernelMidPoint();
+void configureTestKernelRK4();
 void configureCubeTestKernel();
 void runCubeTestKernel();
 bool loadCLCodeFile(char *file, cl_context context, int num_devices, cl_device_id *devices,

@@ -17,12 +17,17 @@ int main(int argc, char** argv)
   //glutIdleFunc(runTestKernel);
 
   //initSystem();
+  //generateJelloCube("cubeEdges","edgeColors");
   //configureTestKernelMidPoint();
   //glutIdleFunc(runTestKernelMidPoint);
-
+  
   generateJelloCube("cubeEdges","edgeColors");
-  configureCubeTestKernel();
-  glutIdleFunc(runCubeTestKernel);
+  configureTestKernelRK4();
+  glutIdleFunc(runTestKernelRK4);
+
+  //generateJelloCube("cubeEdges","edgeColors");
+  //configureCubeTestKernel();
+ // glutIdleFunc(runCubeTestKernel);
 
   //atexit(cleanup);
   glutMainLoop();

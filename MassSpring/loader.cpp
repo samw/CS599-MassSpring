@@ -120,6 +120,30 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   simulation.bufferV = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                       sizeof(cl_float) * 4 * simulation.num_points, vertexPositions, &error);
   if(error) printf("V Buffer Error: %d", error);
+  simulation.f1p = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                      sizeof(cl_float) * 4 * simulation.num_points, vertexPositions, &error);
+  if(error) printf("f1p Buffer Error: %d", error);
+  simulation.f1v = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                      sizeof(cl_float) * 4 * simulation.num_points, vertexPositions, &error);
+  if(error) printf("f1v Buffer Error: %d", error);
+  simulation.f2p = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                      sizeof(cl_float) * 4 * simulation.num_points, vertexPositions, &error);
+  if(error) printf("f2p Buffer Error: %d", error);
+  simulation.f2v = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                      sizeof(cl_float) * 4 * simulation.num_points, vertexPositions, &error);
+  if(error) printf("f2v Buffer Error: %d", error);
+  simulation.f3p = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                      sizeof(cl_float) * 4 * simulation.num_points, vertexPositions, &error);
+  if(error) printf("f3p Buffer Error: %d", error);
+  simulation.f3v = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                      sizeof(cl_float) * 4 * simulation.num_points, vertexPositions, &error);
+  if(error) printf("f3v Buffer Error: %d", error);
+  simulation.f4p = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                      sizeof(cl_float) * 4 * simulation.num_points, vertexPositions, &error);
+  if(error) printf("f4p Buffer Error: %d", error);
+  simulation.f4v = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                      sizeof(cl_float) * 4 * simulation.num_points, vertexPositions, &error);
+  if(error) printf("f4v Buffer Error: %d", error);
 
   //Put spring information into videocard (spring information is the 2 vertecies it connects)
   //At same time fill in spring properties

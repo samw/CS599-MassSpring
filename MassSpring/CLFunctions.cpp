@@ -1,7 +1,7 @@
 #include "MassSpring.h"
 #include "CLFunctions.h"
 
-#define TS .001
+#define TS .009
 
 struct cl_system cl_components;
 
@@ -106,9 +106,67 @@ void configureTestKernelMidPoint()
   clSetKernelArg(cl_components.midpoint_kernel_2, 4, sizeof(cl_float), &timestep);
 }
 
-void runTestKernelMidPoint()
-{
-  //glFinish();
+void configureTestKernelRK4(){
+	//acceleration kernel
+  cl_float initvector[4] = {0.0,0.0,0.0,0.0};
+  clSetKernelArg(cl_components.acceleration_kernel, 0, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.acceleration_kernel, 1, sizeof(cl_float4), &(simulation.acceleration));
+
+  //spring kernel (non-changing arguments)
+  clSetKernelArg(cl_components.batch_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springs));
+  clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springProperties));
+
+  float timestep = TS;
+  //kernel 1
+  clSetKernelArg(cl_components.rk4_kernel_1, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.rk4_kernel_1, 1, sizeof(cl_uint), &(simulation.velocity));
+  clSetKernelArg(cl_components.rk4_kernel_1, 2, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.rk4_kernel_1, 3, sizeof(cl_uint), &(simulation.f1p));
+  clSetKernelArg(cl_components.rk4_kernel_1, 4, sizeof(cl_uint), &(simulation.f1v));
+  clSetKernelArg(cl_components.rk4_kernel_1, 5, sizeof(cl_uint), &(simulation.bufferP));
+  clSetKernelArg(cl_components.rk4_kernel_1, 6, sizeof(cl_uint), &(simulation.bufferV));
+  clSetKernelArg(cl_components.rk4_kernel_1, 7, sizeof(cl_float), &timestep);
+  
+  //kernel 2
+  clSetKernelArg(cl_components.rk4_kernel_2, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.rk4_kernel_2, 1, sizeof(cl_uint), &(simulation.velocity));
+  clSetKernelArg(cl_components.rk4_kernel_2, 2, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.rk4_kernel_2, 3, sizeof(cl_uint), &(simulation.f2p));
+  clSetKernelArg(cl_components.rk4_kernel_2, 4, sizeof(cl_uint), &(simulation.f2v));
+  clSetKernelArg(cl_components.rk4_kernel_2, 5, sizeof(cl_uint), &(simulation.bufferP));
+  clSetKernelArg(cl_components.rk4_kernel_2, 6, sizeof(cl_uint), &(simulation.bufferV));
+  clSetKernelArg(cl_components.rk4_kernel_2, 7, sizeof(cl_float), &timestep);
+
+  //kernel 3
+  clSetKernelArg(cl_components.rk4_kernel_3, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.rk4_kernel_3, 1, sizeof(cl_uint), &(simulation.velocity));
+  clSetKernelArg(cl_components.rk4_kernel_3, 2, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.rk4_kernel_3, 3, sizeof(cl_uint), &(simulation.f3p));
+  clSetKernelArg(cl_components.rk4_kernel_3, 4, sizeof(cl_uint), &(simulation.f3v));
+  clSetKernelArg(cl_components.rk4_kernel_3, 5, sizeof(cl_uint), &(simulation.bufferP));
+  clSetKernelArg(cl_components.rk4_kernel_3, 6, sizeof(cl_uint), &(simulation.bufferV));
+  clSetKernelArg(cl_components.rk4_kernel_3, 7, sizeof(cl_float), &timestep);
+
+  //kernel 4
+  clSetKernelArg(cl_components.rk4_kernel_4, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.rk4_kernel_4, 1, sizeof(cl_uint), &(simulation.velocity));
+  clSetKernelArg(cl_components.rk4_kernel_4, 2, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.rk4_kernel_4, 3, sizeof(cl_uint), &(simulation.f1p));
+  clSetKernelArg(cl_components.rk4_kernel_4, 4, sizeof(cl_uint), &(simulation.f1v));
+  clSetKernelArg(cl_components.rk4_kernel_4, 5, sizeof(cl_uint), &(simulation.f2p));
+  clSetKernelArg(cl_components.rk4_kernel_4, 6, sizeof(cl_uint), &(simulation.f2v));
+  clSetKernelArg(cl_components.rk4_kernel_4, 7, sizeof(cl_uint), &(simulation.f3p));
+  clSetKernelArg(cl_components.rk4_kernel_4, 8, sizeof(cl_uint), &(simulation.f3v));
+  clSetKernelArg(cl_components.rk4_kernel_4, 9, sizeof(cl_uint), &(simulation.f4p));
+  clSetKernelArg(cl_components.rk4_kernel_4, 10, sizeof(cl_uint), &(simulation.f4v));
+  clSetKernelArg(cl_components.rk4_kernel_4, 11, sizeof(cl_uint), &(simulation.bufferP));
+  clSetKernelArg(cl_components.rk4_kernel_4, 12, sizeof(cl_uint), &(simulation.bufferV));
+  clSetKernelArg(cl_components.rk4_kernel_4, 13, sizeof(cl_float), &timestep);
+}
+
+void runTestKernelRK4(){
+  glFinish();
   clEnqueueAcquireGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, NULL);
 
   //zero accelerations for first two points
@@ -116,13 +174,120 @@ void runTestKernelMidPoint()
   clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
                          1, NULL, numvertecies, NULL, 0, NULL, NULL);
   clFinish(cl_components.command_queue);
-  //Calculate the spring forces at time t
-  size_t springbatchsize[1] = {1};
+
   clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
   clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
-  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
-                         1, NULL, springbatchsize, NULL, 0, NULL, NULL);
+
+  for(int i = 0; i < simulation.num_batches; i++)
+  {
+    size_t springbatchsize[1] = {simulation.batch_sizes[i]};
+    clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springBatches[i]));
+    clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springPropertyBatches[i]));
+    clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
+      1, NULL, springbatchsize, NULL, 0, NULL, NULL);
+    clFinish(cl_components.command_queue);
+  }
+
+  clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.bufferP));
+  clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.bufferV));
+
+  //part 1 of rk4
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.rk4_kernel_1,
+						1,NULL, numvertecies, NULL, 0, NULL , NULL);
   clFinish(cl_components.command_queue);
+
+  //zero accel
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
+                         1, NULL, numvertecies, NULL, 0, NULL, NULL);
+  clFinish(cl_components.command_queue);
+
+
+  //recompute acceleration
+  for(int i = 0; i < simulation.num_batches; i++)
+  {
+    size_t springbatchsize[1] = {simulation.batch_sizes[i]};
+    clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springBatches[i]));
+    clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springPropertyBatches[i]));
+    clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
+      1, NULL, springbatchsize, NULL, 0, NULL, NULL);
+    clFinish(cl_components.command_queue);
+  }
+
+  //part 2 of rk4
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.rk4_kernel_2,
+						1,NULL, numvertecies, NULL, 0, NULL , NULL);
+  clFinish(cl_components.command_queue);
+
+  //zero accel
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
+                         1, NULL, numvertecies, NULL, 0, NULL, NULL);
+  clFinish(cl_components.command_queue);
+
+  //recompute acceleration
+  for(int i = 0; i < simulation.num_batches; i++)
+  {
+    size_t springbatchsize[1] = {simulation.batch_sizes[i]};
+    clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springBatches[i]));
+    clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springPropertyBatches[i]));
+    clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
+      1, NULL, springbatchsize, NULL, 0, NULL, NULL);
+    clFinish(cl_components.command_queue);
+  }
+
+  //part 3 of rk4
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.rk4_kernel_3,
+						1,NULL, numvertecies, NULL, 0, NULL , NULL);
+  clFinish(cl_components.command_queue);
+
+  //zero accel
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
+                         1, NULL, numvertecies, NULL, 0, NULL, NULL);
+  clFinish(cl_components.command_queue);
+
+  //recompute acceleration
+  for(int i = 0; i < simulation.num_batches; i++)
+  {
+    size_t springbatchsize[1] = {simulation.batch_sizes[i]};
+    clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springBatches[i]));
+    clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springPropertyBatches[i]));
+    clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
+      1, NULL, springbatchsize, NULL, 0, NULL, NULL);
+    clFinish(cl_components.command_queue);
+  }
+
+  //part 4 of rk4
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.rk4_kernel_4,
+						1,NULL, numvertecies, NULL, 0, NULL , NULL);
+  clFinish(cl_components.command_queue);
+
+  clEnqueueReleaseGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, NULL);
+  clFinish(cl_components.command_queue);
+
+}
+
+void runTestKernelMidPoint()
+{
+  glFinish();
+  clEnqueueAcquireGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, NULL);
+
+  //zero accelerations for first two points
+  size_t numvertecies[1] = {simulation.num_points};
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
+                         1, NULL, numvertecies, NULL, 0, NULL, NULL);
+  clFinish(cl_components.command_queue);
+
+  clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
+
+  for(int i = 0; i < simulation.num_batches; i++)
+  {
+    size_t springbatchsize[1] = {simulation.batch_sizes[i]};
+    clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springBatches[i]));
+    clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springPropertyBatches[i]));
+    clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
+      1, NULL, springbatchsize, NULL, 0, NULL, NULL);
+    clFinish(cl_components.command_queue);
+  }
 
   //timestep to the midpoint at time t + TS/2
   size_t midpointworksize[1] = {simulation.num_points};
@@ -137,9 +302,16 @@ void runTestKernelMidPoint()
   
   clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.bufferP));
   clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.bufferV));
-  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
-                         1, NULL, springbatchsize, NULL, 0, NULL, NULL);
-  clFinish(cl_components.command_queue);
+
+  for(int i = 0; i < simulation.num_batches; i++)
+  {
+    size_t springbatchsize[1] = {simulation.batch_sizes[i]};
+    clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springBatches[i]));
+    clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springPropertyBatches[i]));
+    clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
+      1, NULL, springbatchsize, NULL, 0, NULL, NULL);
+    clFinish(cl_components.command_queue);
+  }
 
   //timestep to the final point
   clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.midpoint_kernel_2,
@@ -281,9 +453,10 @@ bool initOpenCL()
   loadCLCodeFile("spring_kernel.cl", cl_components.opencl_context, num_devices, devices, 2,
                  spring_kernel_names, spring_kernels);
 
-  char *step_kernel_names[3] = {"euler_kernel", "midpoint_kernel_1", "midpoint_kernel_2"};
-  cl_kernel *step_kernels[3] = {&cl_components.euler_kernel, &cl_components.midpoint_kernel_1, &cl_components.midpoint_kernel_2};
-  loadCLCodeFile("timestep.cl", cl_components.opencl_context, num_devices, devices, 3,
+  char *step_kernel_names[7] = {"euler_kernel", "midpoint_kernel_1", "midpoint_kernel_2","rk4_kernel_1","rk4_kernel_2","rk4_kernel_3","rk4_kernel_4"};
+  cl_kernel *step_kernels[7] = {&cl_components.euler_kernel, &cl_components.midpoint_kernel_1, &cl_components.midpoint_kernel_2, &cl_components.rk4_kernel_1,
+	  &cl_components.rk4_kernel_2, &cl_components.rk4_kernel_3, &cl_components.rk4_kernel_4};
+  loadCLCodeFile("timestep.cl", cl_components.opencl_context, num_devices, devices, 7,
                  step_kernel_names, step_kernels);
 
   delete platforms;

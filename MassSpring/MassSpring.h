@@ -25,6 +25,14 @@ struct system
   int *batch_sizes;
   cl_mem *springBatches;
   cl_mem *springPropertyBatches;
+  cl_mem f1p;
+  cl_mem f1v;
+  cl_mem f2p;
+  cl_mem f2v;
+  cl_mem f3p;
+  cl_mem f3v;
+  cl_mem f4p;
+  cl_mem f4v;
 };
 extern struct system simulation;
 
