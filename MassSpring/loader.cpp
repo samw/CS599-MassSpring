@@ -66,12 +66,13 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   int v = vert_per_dim;
   for(int i = 0; i < num_vertecies; i++)
   {
-    vertex_positions[i][0] = (float)(i/v2)/(float)v ;
-    vertex_positions[i][1] = (float)((i%v2)/v)/(float)v;
-    vertex_positions[i][2] = (float)(i%v)/(float)v;
+    vertex_positions[i][0] = (float)(i/v2)/(float)(v-1) ;
+    vertex_positions[i][1] = (float)((i%v2)/v)/(float)(v-1);
+    vertex_positions[i][2] = (float)(i%v)/(float)(v-1);
     vertex_positions[i][3] = 1.0f;
-    //printf("%f %f %f\n", vertex_positions[i][0], vertex_positions[i][1], vertex_positions[i][2]);
+    printf("%f %f %f\n", vertex_positions[i][0], vertex_positions[i][1], vertex_positions[i][2]);
   }
+
   //Count size of each spring batch
   batches = new int*[num_colors];
   for(int i = 0; i < num_colors; i++)
@@ -92,6 +93,12 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   {
     simulation.batch_sizes[i] = batch_count[i];
   }
+
+  // Pull out a corner so we can see it snap back in
+  vertex_positions[num_vertecies-1][0] = 2.0f;
+  vertex_positions[num_vertecies-1][1] = 2.0f;
+  vertex_positions[num_vertecies-1][2] = 2.0f;
+  vertex_positions[num_vertecies-1][3] = 1.0f;
   
   //Put vertex positions into vertex buffer
   //Create OpenGL buffer
@@ -101,6 +108,13 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   //Create OpenCL buffer object attached to OpenGL vertex buffer object
   simulation.position = clCreateFromGLBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE,
                                              simulation.position_buffer, &error);
+
+  // Push corner back in to correct rest position
+  vertex_positions[num_vertecies-1][0] = 1.0f;
+  vertex_positions[num_vertecies-1][1] = 1.0f;
+  vertex_positions[num_vertecies-1][2] = 1.0f;
+  vertex_positions[num_vertecies-1][3] = 1.0f;
+
   if(error) printf("Position Buffer Error: %d", error);
   //Make vertex_init 0 so we can use them as source for position and velocity
   for(int i = 0; i < simulation.num_points; i++)
@@ -165,18 +179,15 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
       //Copy vertex # from spring list to batched springl list
       batchedsprings[j][0] = springs[(batches[i][j])][0];
       batchedsprings[j][1] = springs[(batches[i][j])][1];
-      //spring_properties[j][0] = 0.1; //reset length 
-      //really all the springs should have differnt rest lenghts but this is for testing
-      //find actual rest distance between vertecies
 #define SQUARE(x) (x*x)
       float rest = sqrt(
         SQUARE((vertex_positions[batchedsprings[j][0]][0] - vertex_positions[batchedsprings[j][1]][0])) +
         SQUARE((vertex_positions[batchedsprings[j][0]][1] - vertex_positions[batchedsprings[j][1]][1])) +
         SQUARE((vertex_positions[batchedsprings[j][0]][2] - vertex_positions[batchedsprings[j][1]][2])) );
 #undef SQUARE
-      spring_properties[j][0] = 0.6 * rest; //reset length 
-      spring_properties[j][1] = 100.0; //spring force
-      spring_properties[j][2] = 10.0; //damepning force
+      spring_properties[j][0] = 1.0 * rest; //reset length 
+      spring_properties[j][1] = 1000.0; //spring force
+      spring_properties[j][2] = 2.0; //damepning force
       spring_properties[j][3] = 0.0; //<empty>
     }
     simulation.springBatches[i] = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,

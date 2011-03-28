@@ -24,10 +24,10 @@ extern struct cl_system cl_components;
 
 void configureTestKernel();
 void runTestKernel();
-void runTestKernelMidPoint();
-void runTestKernelRK4();
 void configureTestKernelMidPoint();
+void runTestKernelMidPoint();
 void configureTestKernelRK4();
+void runTestKernelRK4();
 void configureCubeTestKernel();
 void runCubeTestKernel();
 bool loadCLCodeFile(char *file, cl_context context, int num_devices, cl_device_id *devices,

@@ -20,14 +20,14 @@ int main(int argc, char** argv)
   //generateJelloCube("cubeEdges","edgeColors");
   //configureTestKernelMidPoint();
   //glutIdleFunc(runTestKernelMidPoint);
+
+  //generateJelloCube("cubeEdges","edgeColors");
+  //configureCubeTestKernel();
+  // glutIdleFunc(runCubeTestKernel);
   
   generateJelloCube("cubeEdges","edgeColors");
   configureTestKernelRK4();
   glutIdleFunc(runTestKernelRK4);
-
-  //generateJelloCube("cubeEdges","edgeColors");
-  //configureCubeTestKernel();
- // glutIdleFunc(runCubeTestKernel);
 
   //atexit(cleanup);
   glutMainLoop();
