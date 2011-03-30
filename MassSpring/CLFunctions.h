@@ -18,6 +18,7 @@ struct cl_system
   cl_kernel rk4_kernel_2;
   cl_kernel rk4_kernel_3;
   cl_kernel rk4_kernel_4;
+  cl_event lastevent;
 };
 
 extern struct cl_system cl_components;

@@ -275,18 +275,22 @@ void configureTestKernelRK4()
 
 void runTestKernelRK4()
 {
-  glFinish();
-  int numstepsperframe = 2;
+  cl_event lastevent[1];
+  cl_event currentevent;
+  //glFinish();
+  int numstepsperframe = 1;
   for(int t = 0; t < numstepsperframe; t++)
   {
 
-  clEnqueueAcquireGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, NULL);
+  clEnqueueAcquireGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, &currentevent);
+  lastevent[0] = currentevent;
 
   //zero accelerations for first two points
   size_t numvertecies[1] = {simulation.num_points};
   clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
-                         1, NULL, numvertecies, NULL, 0, NULL, NULL);
-  clFinish(cl_components.command_queue);
+                         1, NULL, numvertecies, NULL, 1, lastevent, &currentevent);
+  lastevent[0] = currentevent;
+  //clFinish(cl_components.command_queue);
 
   clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
   clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
@@ -297,8 +301,9 @@ void runTestKernelRK4()
     clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springBatches[i]));
     clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springPropertyBatches[i]));
     clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
-      1, NULL, springbatchsize, NULL, 0, NULL, NULL);
-    clFinish(cl_components.command_queue);
+      1, NULL, springbatchsize, NULL, 1, lastevent, &currentevent);
+    lastevent[0] = currentevent;
+    //clFinish(cl_components.command_queue);
   }
 
   clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.bufferP));
@@ -306,13 +311,15 @@ void runTestKernelRK4()
 
   //part 1 of rk4
   clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.rk4_kernel_1,
-						1,NULL, numvertecies, NULL, 0, NULL , NULL);
-  clFinish(cl_components.command_queue);
+						1,NULL, numvertecies, NULL, 1, lastevent, &currentevent);
+  lastevent[0] = currentevent;
+  //clFinish(cl_components.command_queue);
 
   //zero accel
   clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
-                         1, NULL, numvertecies, NULL, 0, NULL, NULL);
-  clFinish(cl_components.command_queue);
+                         1, NULL, numvertecies, NULL, 1, lastevent, &currentevent);
+  lastevent[0] = currentevent;
+  //clFinish(cl_components.command_queue);
 
 
   //recompute acceleration
@@ -322,19 +329,22 @@ void runTestKernelRK4()
     clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springBatches[i]));
     clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springPropertyBatches[i]));
     clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
-      1, NULL, springbatchsize, NULL, 0, NULL, NULL);
-    clFinish(cl_components.command_queue);
+      1, NULL, springbatchsize, NULL, 1, lastevent, &currentevent);
+    lastevent[0] = currentevent;
+    //clFinish(cl_components.command_queue);
   }
 
   //part 2 of rk4
   clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.rk4_kernel_2,
-						1,NULL, numvertecies, NULL, 0, NULL , NULL);
-  clFinish(cl_components.command_queue);
+						1,NULL, numvertecies, NULL, 1, lastevent, &currentevent);
+  lastevent[0] = currentevent;
+  //clFinish(cl_components.command_queue);
 
   //zero accel
   clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
-                         1, NULL, numvertecies, NULL, 0, NULL, NULL);
-  clFinish(cl_components.command_queue);
+                         1, NULL, numvertecies, NULL, 1, lastevent, &currentevent);
+  lastevent[0] = currentevent;
+  //clFinish(cl_components.command_queue);
 
   //recompute acceleration
   for(int i = 0; i < simulation.num_batches; i++)
@@ -343,19 +353,22 @@ void runTestKernelRK4()
     clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springBatches[i]));
     clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springPropertyBatches[i]));
     clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
-      1, NULL, springbatchsize, NULL, 0, NULL, NULL);
-    clFinish(cl_components.command_queue);
+      1, NULL, springbatchsize, NULL, 1, lastevent, &currentevent);
+    lastevent[0] = currentevent;
+    //clFinish(cl_components.command_queue);
   }
 
   //part 3 of rk4
   clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.rk4_kernel_3,
-						1,NULL, numvertecies, NULL, 0, NULL , NULL);
-  clFinish(cl_components.command_queue);
+						1,NULL, numvertecies, NULL, 1, lastevent, &currentevent);
+  lastevent[0] = currentevent;
+  //clFinish(cl_components.command_queue);
 
   //zero accel
   clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
-                         1, NULL, numvertecies, NULL, 0, NULL, NULL);
-  clFinish(cl_components.command_queue);
+                         1, NULL, numvertecies, NULL, 1, lastevent, &currentevent);
+  lastevent[0] = currentevent;
+  //clFinish(cl_components.command_queue);
 
   //recompute acceleration
   for(int i = 0; i < simulation.num_batches; i++)
@@ -364,16 +377,18 @@ void runTestKernelRK4()
     clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springBatches[i]));
     clSetKernelArg(cl_components.batch_spring_kernel, 4, sizeof(cl_uint), &(simulation.springPropertyBatches[i]));
     clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.batch_spring_kernel,
-      1, NULL, springbatchsize, NULL, 0, NULL, NULL);
-    clFinish(cl_components.command_queue);
+      1, NULL, springbatchsize, NULL, 1, lastevent, &currentevent);
+    lastevent[0] = currentevent;
+    //clFinish(cl_components.command_queue);
   }
 
   //part 4 of rk4
   clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.rk4_kernel_4,
-						1,NULL, numvertecies, NULL, 0, NULL , NULL);
-  clFinish(cl_components.command_queue);
+						1,NULL, numvertecies, NULL, 1, lastevent, &currentevent);
+  lastevent[0] = currentevent;
+  //clFinish(cl_components.command_queue);
 
-  clEnqueueReleaseGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, NULL);
+  clEnqueueReleaseGLObjects(cl_components.command_queue, 1, &(simulation.position), 1, lastevent, &currentevent);
   clFinish(cl_components.command_queue);
   }
 }

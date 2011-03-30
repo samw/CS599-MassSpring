@@ -68,6 +68,11 @@ bool initGLUT()
   window_camera.up[2] = 0.0;
   setCamera();
 
+  input_state.mlook = 0;
+  glutSetCursor(GLUT_CURSOR_CROSSHAIR);
+  
+  glutKeyboardFunc(keyboardFunction);
+  glutSpecialFunc(keyboardSpecialFunction);
   glutMotionFunc(mouseMotionDrag);
   glutPassiveMotionFunc(mouseMotion);
   glutMouseFunc(mouseButton);
@@ -119,12 +124,22 @@ void rotateCamera(float xdiff, float ydiff)
 void moveCamera(float xdiff, float ydiff)
 {
   float right[3];
+  float up[3];
+  float len;
   right[0] = window_camera.look[1] * window_camera.up[2] - window_camera.look[2] * window_camera.up[1];
   right[1] = window_camera.look[2] * window_camera.up[0] - window_camera.look[0] * window_camera.up[2];
   right[2] = window_camera.look[0] * window_camera.up[1] - window_camera.look[1] * window_camera.up[0];
-  window_camera.position[0] += (window_camera.up[0] * ydiff) + (right[0] * xdiff);
-  window_camera.position[1] += (window_camera.up[1] * ydiff) + (right[1] * xdiff);
-  window_camera.position[2] += (window_camera.up[2] * ydiff) + (right[2] * xdiff);
+  len = 1/sqrt(right[0]*right[0] + right[1]*right[1] + right[2]*right[2]);
+  right[0] *= len;
+  right[1] *= len;
+  right[2] *= len;
+  up[0] = right[1] * window_camera.look[2] - right[2] * window_camera.look[1];
+  up[1] = right[2] * window_camera.look[0] - right[0] * window_camera.look[2];
+  up[2] = right[0] * window_camera.look[1] - right[1] * window_camera.look[0];
+
+  window_camera.position[0] += (up[0] * ydiff) + (right[0] * xdiff);
+  window_camera.position[1] += (up[1] * ydiff) + (right[1] * xdiff);
+  window_camera.position[2] += (up[2] * ydiff) + (right[2] * xdiff);
   setCamera();
 }
 
@@ -141,7 +156,40 @@ void tearDownGL()
   glDeleteBuffers(1, &(simulation.position_buffer));
 }
 
-/* converts mouse drags into information about rotation/translation/scaling */
+void keyboardFunction(unsigned char key, int x, int y)
+{
+  switch (key)
+  {
+  case 27:
+    exit(0);
+    break;
+  case 'z':
+    input_state.mlook = (input_state.mlook + 1) % 2;
+    if(input_state.mlook) glutSetCursor(GLUT_CURSOR_NONE);
+    else glutSetCursor(GLUT_CURSOR_CROSSHAIR);
+  }
+}
+
+void keyboardSpecialFunction(int key, int x, int y)
+{
+  switch (key)
+  {
+  case GLUT_KEY_UP:
+    moveCameraForward(0.025);
+    break;
+  case GLUT_KEY_DOWN:
+    moveCameraForward(-0.025);
+    break;
+  case GLUT_KEY_LEFT:
+    moveCamera(-0.025, 0.0);
+    break;
+  case GLUT_KEY_RIGHT:
+    moveCamera(0.025, 0.0);
+    break;
+  }
+}
+
+/* converts mouse drags into information about camera movement*/
 void mouseMotionDrag(int x, int y)
 {
   float movement[2] = {x-input_state.mouseX, y-input_state.mouseY};
@@ -151,22 +199,32 @@ void mouseMotionDrag(int x, int y)
     moveCamera( movement[0]/100.0,-movement[1]/100.0);
   }
   else
-  if(input_state.left)
-  {
-    rotateCamera(movement[0]/100, -(movement[1]/100));
-  }
-  else
   if(input_state.middle)
   {
-    moveCameraForward(-movement[1]/100);
+    if(input_state.mlook)
+      moveCameraForward(-movement[1]/100);
+    else
+      rotateCamera(movement[0]/100, -(movement[1]/100));
   }
-
   input_state.mouseX = x;
   input_state.mouseY = y;
 }
 
 void mouseMotion (int x, int y)
 {
+  if(input_state.mlook)
+  {
+    float movement[2] = {x-input_state.mouseX, y-input_state.mouseY};
+    rotateCamera(movement[0]/100, -(movement[1]/100));
+    int dist = abs(x - (main_window.width/2)) + abs(y - (main_window.height/2));
+    if(dist > 100)
+    {
+      input_state.mouseX = main_window.width/2;
+      input_state.mouseY = main_window.height/2;
+      glutWarpPointer(main_window.width/2,main_window.height/2);
+      return;
+    }
+  }
   input_state.mouseX = x;
   input_state.mouseY = y;
 }
@@ -185,7 +243,6 @@ void mouseButton(int button, int state, int x, int y)
       input_state.right = (state==GLUT_DOWN);
       break;
   }
- 
   input_state.mouseX = x;
   input_state.mouseY = y;
 }

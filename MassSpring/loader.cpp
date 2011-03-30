@@ -70,7 +70,7 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
     vertex_positions[i][1] = (float)((i%v2)/v)/(float)(v-1);
     vertex_positions[i][2] = (float)(i%v)/(float)(v-1);
     vertex_positions[i][3] = 1.0f;
-    printf("%f %f %f\n", vertex_positions[i][0], vertex_positions[i][1], vertex_positions[i][2]);
+    //printf("%f %f %f\n", vertex_positions[i][0], vertex_positions[i][1], vertex_positions[i][2]);
   }
 
   //Count size of each spring batch
