@@ -6,6 +6,7 @@ struct input input_state;
 struct window main_window;
 struct camera window_camera;
 
+
 void render()
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -25,9 +26,11 @@ void render()
   glPointSize(2);
   glColor3f(1.0, 1.0, 0.0);
   glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.element_buffer);
   glVertexPointer(4, GL_FLOAT, 0, 0);
   glEnableClientState(GL_VERTEX_ARRAY);
-  glDrawArrays(GL_POINTS, 0, simulation.num_points);
+  //glDrawArrays(GL_POINTS, 0, simulation.num_points);
+  glDrawElements(GL_POINTS, simulation.num_draw_elements, GL_UNSIGNED_INT, 0);
   glDisableClientState(GL_VERTEX_ARRAY);
 
   glutSwapBuffers();

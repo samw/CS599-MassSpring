@@ -13,7 +13,9 @@
 struct system
 {
   int num_points;
+  int num_draw_elements;
   GLuint position_buffer;
+  GLuint element_buffer;
   cl_mem position;
   cl_mem velocity;
   cl_mem acceleration;

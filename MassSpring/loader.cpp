@@ -13,6 +13,8 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   int vert_per_dim = 0;
   float (*vertex_positions)[4];
   float (*vertex_init)[4];
+  GLint *side_vertex_indecies; //used to fill IBO
+  int side_vert_fill = 0;
   int (*springs)[2]; //vertecies of springs
   int *spring_colors; //colors for spings listed in order of 'springs'
   int *batch_count;  //# of springs in each batch
@@ -37,7 +39,8 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   //// READ FILES
   fscanf(spring_file, "%d %d %d\n", &vert_per_dim, &num_vertecies, &num_springs);
   fscanf(color_file, "%d\n", &num_colors);
-  
+
+  side_vertex_indecies = new int[(6 * (vert_per_dim * vert_per_dim))];
   vertex_positions = new float[num_vertecies][4];
   vertex_init = new float[num_vertecies][4];
   springs = new int[num_springs][2];
@@ -71,7 +74,14 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
     vertex_positions[i][2] = (float)(i%v)/(float)(v-1);
     vertex_positions[i][3] = 1.0f;
     //printf("%f %f %f\n", vertex_positions[i][0], vertex_positions[i][1], vertex_positions[i][2]);
+    if( vertex_positions[i][0] == 0.0 || vertex_positions[i][0] == 1.0 ||
+        vertex_positions[i][1] == 0.0 || vertex_positions[i][1] == 1.0 ||
+        vertex_positions[i][2] == 0.0 || vertex_positions[i][2] == 1.0)
+    {
+      side_vertex_indecies[side_vert_fill++] = i;
+    }
   }
+  simulation.num_draw_elements = side_vert_fill;
 
   //Count size of each spring batch
   batches = new int*[num_colors];
@@ -108,6 +118,11 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   //Create OpenCL buffer object attached to OpenGL vertex buffer object
   simulation.position = clCreateFromGLBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE,
                                              simulation.position_buffer, &error);
+
+  //Create drawing index buffer for drawing vertex points
+  glGenBuffers(1, &(simulation.element_buffer));
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.element_buffer);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, side_vert_fill * sizeof(GLint), side_vertex_indecies, GL_STATIC_DRAW);
 
   // Push corner back in to correct rest position
   vertex_positions[num_vertecies-1][0] = 1.0f;
@@ -211,4 +226,6 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   delete[] springs;
   delete[] vertex_init;
   delete[] vertex_positions;
+
+  delete[] side_vertex_indecies;
 }

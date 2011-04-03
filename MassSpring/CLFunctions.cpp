@@ -277,7 +277,7 @@ void runTestKernelRK4()
 {
   cl_event lastevent[1];
   cl_event currentevent;
-  //glFinish();
+  glFinish();
   int numstepsperframe = 1;
   for(int t = 0; t < numstepsperframe; t++)
   {
