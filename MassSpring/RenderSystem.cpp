@@ -25,13 +25,37 @@ void render()
 
   glPointSize(2);
   glColor3f(1.0, 1.0, 0.0);
-  glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.element_buffer);
-  glVertexPointer(4, GL_FLOAT, 0, 0);
-  glEnableClientState(GL_VERTEX_ARRAY);
-  //glDrawArrays(GL_POINTS, 0, simulation.num_points);
-  glDrawElements(GL_POINTS, simulation.num_draw_elements, GL_UNSIGNED_INT, 0);
-  glDisableClientState(GL_VERTEX_ARRAY);
+
+  if(window_camera.view_mode == 0)
+  {
+    glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
+    glVertexPointer(4, GL_FLOAT, 0, 0);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glDrawArrays(GL_POINTS, 0, simulation.num_points);
+    glDisableClientState(GL_VERTEX_ARRAY);
+  }
+
+  if(window_camera.view_mode == 1)
+  {
+    glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.element_buffer);
+    glVertexPointer(4, GL_FLOAT, 0, 0);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glDrawElements(GL_POINTS, simulation.num_draw_elements, GL_UNSIGNED_INT, 0);
+    glDisableClientState(GL_VERTEX_ARRAY);
+  }
+
+  if(window_camera.view_mode == 2)
+  {
+    glEnable(GL_LIGHTING);
+    glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.triangle_buffer);
+    glVertexPointer(4, GL_FLOAT, 0, 0);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glDrawElements(GL_TRIANGLES, simulation.num_draw_triangles, GL_UNSIGNED_INT, 0);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisable(GL_LIGHTING);
+  }
 
   glutSwapBuffers();
   glutPostRedisplay();
@@ -91,6 +115,95 @@ bool initGLUT()
     printf("OpenGL Vertex Buffer Object not supported.\n");
     return false;
   }
+
+  window_camera.view_mode = 2;
+ 
+  //SETUP LIGHTS
+  // global ambient light
+  GLfloat aGa[] = { 0.4, 0.1, 0.1, 0.0 };
+  
+  // light 's ambient, diffuse, specular
+  GLfloat lKa0[] = { 0.0, 0.0, 0.0, 1.0 };
+  GLfloat lKd0[] = { 1.0, 1.0, 1.0, 1.0 };
+  GLfloat lKs0[] = { 1.0, 1.0, 1.0, 1.0 };
+
+  GLfloat lKa1[] = { 0.0, 0.0, 0.0, 1.0 };
+  GLfloat lKd1[] = { 1.0, 0.0, 0.0, 1.0 };
+  GLfloat lKs1[] = { 1.0, 0.0, 0.0, 1.0 };
+
+  GLfloat lKa2[] = { 0.0, 0.0, 0.0, 1.0 };
+  GLfloat lKd2[] = { 0.0, 1.0, 0.0, 1.0 };
+  GLfloat lKs2[] = { 0.0, 1.0, 0.0, 1.0 };
+
+  GLfloat lKa3[] = { 0.0, 0.0, 0.0, 1.0 };
+  GLfloat lKd3[] = { 0.0, 0.0, 1.0, 1.0 };
+  GLfloat lKs3[] = { 0.0, 0.0, 1.0, 1.0 };
+
+  GLfloat lKa4[] = { 0.0, 0.0, 0.0, 1.0 };
+  GLfloat lKd4[] = { 0.3, 0.2, 0.1, 1.0 };
+  GLfloat lKs4[] = { 0.5, 0.4, 0.2, 1.0 };
+
+  GLfloat lKa5[] = { 0.0, 0.0, 0.0, 1.0 };
+  GLfloat lKd5[] = { 0.3, 0.2, 0.1, 1.0 };
+  GLfloat lKs5[] = { 0.5, 0.4, 0.2, 1.0 };
+
+  GLfloat lKa6[] = { 0.0, 0.0, 0.0, 1.0 };
+  GLfloat lKd6[] = { 0.3, 0.2, 0.1, 1.0 };
+  GLfloat lKs6[] = { 0.5, 0.4, 0.2, 1.0 };
+
+  GLfloat lKa7[] = { 0.0, 0.0, 0.0, 1.0 };
+  GLfloat lKd7[] = { 0.3, 0.2, 0.1, 1.0 };
+  GLfloat lKs7[] = { 0.5, 0.4, 0.2, 1.0 };
+
+  // light positions and directions
+  GLfloat lP0[] = { -1.5, -1.5, 1.5, 1.0 };
+  GLfloat lP1[] = { 1.5, -1.5, 1.5, 1.0 };
+  GLfloat lP2[] = { -1.5, 1.5, 1.5, 1.0 };
+  GLfloat lP3[] = { 1.5, 1.5, 1.5, 1.0 };
+  GLfloat lP4[] = { 1.999, 1.999, -1.999, 1.0 };
+  GLfloat lP5[] = { 1.999, -1.999, -1.999, 1.0 };
+  GLfloat lP6[] = { -1.999, 1.999, -1.999, 1.0 };
+  GLfloat lP7[] = { -1.999, -1.999, -1.999, 1.0 };
+  
+  // jelly material color
+
+  GLfloat mKa[] = { 0.0, 0.0, 0.0, 1.0 };
+  GLfloat mKd[] = { 1.0, 0.8, 0.8, 1.0 };
+  GLfloat mKs[] = { 1.0, 1.0, 1.0, 1.0 };
+  GLfloat mKe[] = { 0.0, 0.0, 0.0, 1.0 };
+
+  /* set up lighting */
+  glLightModelfv(GL_LIGHT_MODEL_AMBIENT, aGa);
+  glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
+  glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
+
+  // set up cube color
+  glMaterialfv(GL_FRONT, GL_AMBIENT, mKa);
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, mKd);
+  glMaterialfv(GL_FRONT, GL_SPECULAR, mKs);
+  glMaterialfv(GL_FRONT, GL_EMISSION, mKe);
+  glMaterialf(GL_FRONT, GL_SHININESS, 180);
+    
+  // macro to set up light i
+  #define LIGHTSETUP(i)\
+  glLightfv(GL_LIGHT##i, GL_POSITION, lP##i);\
+  glLightfv(GL_LIGHT##i, GL_AMBIENT, lKa##i);\
+  glLightfv(GL_LIGHT##i, GL_DIFFUSE, lKd##i);\
+  glLightfv(GL_LIGHT##i, GL_SPECULAR, lKs##i);\
+  glLightf(GL_LIGHT##i, GL_QUADRATIC_ATTENUATION, 0.1);\
+  glEnable(GL_LIGHT##i)
+  
+  LIGHTSETUP (0);
+  LIGHTSETUP (1);
+  LIGHTSETUP (2);
+  LIGHTSETUP (3);
+  LIGHTSETUP (4);
+  LIGHTSETUP (5);
+  LIGHTSETUP (6);
+  LIGHTSETUP (7);
+   
+  glEnable(GL_DEPTH_TEST);
+
   return true;
 }
 
@@ -170,6 +283,9 @@ void keyboardFunction(unsigned char key, int x, int y)
     input_state.mlook = (input_state.mlook + 1) % 2;
     if(input_state.mlook) glutSetCursor(GLUT_CURSOR_NONE);
     else glutSetCursor(GLUT_CURSOR_CROSSHAIR);
+    break;
+  case 'v':
+    window_camera.view_mode = (window_camera.view_mode+1)%3;
   }
 }
 

@@ -14,7 +14,9 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   float (*vertex_positions)[4];
   float (*vertex_init)[4];
   GLint *side_vertex_indecies; //used to fill IBO
+  GLint *side_triangle_indecies; // used to fill IBO for triangles
   int side_vert_fill = 0;
+  int side_triangle_fill = 0;
   int (*springs)[2]; //vertecies of springs
   int *spring_colors; //colors for spings listed in order of 'springs'
   int *batch_count;  //# of springs in each batch
@@ -41,6 +43,7 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   fscanf(color_file, "%d\n", &num_colors);
 
   side_vertex_indecies = new int[(6 * (vert_per_dim * vert_per_dim))];
+  side_triangle_indecies = new int[(6 * (vert_per_dim * vert_per_dim)) * 6];
   vertex_positions = new float[num_vertecies][4];
   vertex_init = new float[num_vertecies][4];
   springs = new int[num_springs][2];
@@ -74,14 +77,74 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
     vertex_positions[i][2] = (float)(i%v)/(float)(v-1);
     vertex_positions[i][3] = 1.0f;
     //printf("%f %f %f\n", vertex_positions[i][0], vertex_positions[i][1], vertex_positions[i][2]);
+
+    //Detect edge vertecies and triangles and create drawlists for them
     if( vertex_positions[i][0] == 0.0 || vertex_positions[i][0] == 1.0 ||
-        vertex_positions[i][1] == 0.0 || vertex_positions[i][1] == 1.0 ||
-        vertex_positions[i][2] == 0.0 || vertex_positions[i][2] == 1.0)
+      vertex_positions[i][1] == 0.0 || vertex_positions[i][1] == 1.0 ||
+      vertex_positions[i][2] == 0.0 || vertex_positions[i][2] == 1.0)
     {
       side_vertex_indecies[side_vert_fill++] = i;
+
+      int xp = -1;
+      int xn = -1;
+      int yp = -1;
+      int yn = -1;
+      int zp = -1;
+      int zn = -1;
+
+      if(i/v2 < vert_per_dim - 1)
+        xp = i + (v2);
+      if(i/v2 > 0)
+        xn = i - (v2);
+      if((i%v2)/v < vert_per_dim - 1)
+        yp = i + v;
+      if((i%v2)/v > 0)
+        yn = i - v;
+      if(i%v < vert_per_dim - 1)
+        zp = i + 1;
+      if(i%v > 0)
+        zn = i - 1;
+
+      if( xp >= 0 && yp >= 0 && (vertex_positions[i][2] == 0.0 || vertex_positions[i][2] == 1.0))
+      {
+        side_triangle_indecies[side_triangle_fill++] = i;
+        side_triangle_indecies[side_triangle_fill++] = xp;
+        side_triangle_indecies[side_triangle_fill++] = yp;
+      }
+      if( xn >= 0 && yn >= 0 && (vertex_positions[i][2] == 0.0 || vertex_positions[i][2] == 1.0))
+      {
+        side_triangle_indecies[side_triangle_fill++] = i;
+        side_triangle_indecies[side_triangle_fill++] = xn;
+        side_triangle_indecies[side_triangle_fill++] = yn;
+      }
+      if( xp >= 0 && zp >= 0 && (vertex_positions[i][1] == 0.0 || vertex_positions[i][1] == 1.0))
+      {
+        side_triangle_indecies[side_triangle_fill++] = i;
+        side_triangle_indecies[side_triangle_fill++] = xp;
+        side_triangle_indecies[side_triangle_fill++] = zp;
+      }
+      if( xn >= 0 && zn >= 0 && (vertex_positions[i][1] == 0.0 || vertex_positions[i][1] == 1.0))
+      {
+        side_triangle_indecies[side_triangle_fill++] = i;
+        side_triangle_indecies[side_triangle_fill++] = xn;
+        side_triangle_indecies[side_triangle_fill++] = zn;
+      }
+      if( zp >= 0 && yp >= 0 && (vertex_positions[i][0] == 0.0 || vertex_positions[i][0] == 1.0))
+      {
+        side_triangle_indecies[side_triangle_fill++] = i;
+        side_triangle_indecies[side_triangle_fill++] = yp;
+        side_triangle_indecies[side_triangle_fill++] = zp;
+      }
+      if( zn >= 0 && yn >= 0 && (vertex_positions[i][0] == 0.0 || vertex_positions[i][0] == 1.0))
+      {
+        side_triangle_indecies[side_triangle_fill++] = i;
+        side_triangle_indecies[side_triangle_fill++] = yn;
+        side_triangle_indecies[side_triangle_fill++] = zn;
+      }
     }
   }
   simulation.num_draw_elements = side_vert_fill;
+  simulation.num_draw_triangles = side_triangle_fill;
 
   //Count size of each spring batch
   batches = new int*[num_colors];
@@ -123,6 +186,10 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   glGenBuffers(1, &(simulation.element_buffer));
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.element_buffer);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, side_vert_fill * sizeof(GLint), side_vertex_indecies, GL_STATIC_DRAW);
+
+  glGenBuffers(1, &(simulation.triangle_buffer));
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.triangle_buffer);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, side_triangle_fill * sizeof(GLint), side_triangle_indecies, GL_STATIC_DRAW);
 
   // Push corner back in to correct rest position
   vertex_positions[num_vertecies-1][0] = 1.0f;
@@ -226,6 +293,7 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   delete[] springs;
   delete[] vertex_init;
   delete[] vertex_positions;
-
+  
+  delete[] side_triangle_indecies;
   delete[] side_vertex_indecies;
 }

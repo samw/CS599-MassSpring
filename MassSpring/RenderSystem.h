@@ -28,6 +28,7 @@ struct camera
   float position[3];
   float look[3];
   float up[3];
+  int view_mode;
 };
 extern struct camera window_camera;
 
