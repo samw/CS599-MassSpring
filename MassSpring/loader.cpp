@@ -1,6 +1,8 @@
+#include "loader.h"
 #include "MassSpring.h"
 #include "CLFunctions.h"
-#include "loader.h"
+
+#include <stdio.h>
 #include <math.h>
 
 void generateJelloCube(char *springsfilename, char *colorsfilename)

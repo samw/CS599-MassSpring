@@ -57,7 +57,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\lib\glut-3.7.6\include;$(ProjectDir)\..\lib\OpenCL-NV\include;$(ProjectDir)\..\lib\glew-1.5.8\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>Win32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>Win32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -70,7 +70,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\lib\glut-3.7.6\include;$(ProjectDir)\..\lib\OpenCL-AMD\include;$(ProjectDir)\..\lib\glew-1.5.8\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>Win32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>Win32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -85,7 +85,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\lib\glut-3.7.6\include;$(ProjectDir)\..\lib\OpenCL\include;$(ProjectDir)\..\lib\glew-1.5.8\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>Win32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>Win32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -108,14 +108,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CLFunctions.cpp" />
+    <ClCompile Include="input.cpp" />
     <ClCompile Include="loader.cpp" />
     <ClCompile Include="MassSpring.cpp" />
     <ClCompile Include="RenderSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CLFunctions.h" />
+    <ClInclude Include="input.h" />
     <ClInclude Include="loader.h" />
     <ClInclude Include="MassSpring.h" />
+    <ClInclude Include="opengl_headers.h" />
     <ClInclude Include="RenderSystem.h" />
   </ItemGroup>
   <ItemGroup>

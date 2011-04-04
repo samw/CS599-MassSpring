@@ -3,6 +3,8 @@
 #include "CLFunctions.h"
 #include "loader.h"
 
+#include <stdio.h>
+
 struct system simulation;
 
 int main(int argc, char** argv)
@@ -31,7 +33,8 @@ int main(int argc, char** argv)
 
   //atexit(cleanup);
   glutMainLoop();
-  exit(-1);
+
+  return -1;
 }
 
 void initSystem()
@@ -93,10 +96,4 @@ void initSystem()
                                            sizeof(cl_float) * 1 * 4, spring_properties, &error);
 
   delete data;
-}
-
-void cleanup()
-{
-  tearDownCL();
-  tearDownGL();
 }

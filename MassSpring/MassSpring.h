@@ -1,14 +1,8 @@
-
 #ifndef _MASSSPRING_H_
 #define _MASSSPRING_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <cl\opencl.h>
-#include <GL\glew.h>
-#include <GL\wglew.h>
-#include <gl\glut.h>
+#include "opengl_headers.h"
 
 struct system
 {
@@ -41,6 +35,5 @@ struct system
 extern struct system simulation;
 
 void initSystem();
-void cleanup();
 
 #endif
