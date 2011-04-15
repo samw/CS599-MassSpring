@@ -9,9 +9,10 @@ struct system
   int num_points;
   int num_draw_elements;
   int num_draw_triangles;
-  GLuint position_buffer;
-  GLuint element_buffer;
-  GLuint triangle_buffer;
+  GLuint position_buffer; //Buffer for vertex positions of all vertecies
+  GLuint element_buffer;  //Buffer for vertecies on outside of model (used for drawing side as dots)
+  GLuint color_id_buffer; //Buffer to color vertecies for mouse choosing
+  GLuint triangle_buffer; //Buffer for vertex triplets creating triangles
   cl_mem position;
   cl_mem velocity;
   cl_mem acceleration;

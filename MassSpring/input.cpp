@@ -88,6 +88,8 @@ void mouseButton(int button, int state, int x, int y)
   {
     case GLUT_LEFT_BUTTON:
       input_state.left = (state==GLUT_DOWN);
+      if(input_state.left == GLUT_DOWN)
+        window_camera.view_mode *= -1;
       break;
     case GLUT_MIDDLE_BUTTON:
       input_state.middle = (state==GLUT_DOWN);

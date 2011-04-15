@@ -12,7 +12,6 @@ struct camera window_camera;
 void render()
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
   glBegin(GL_LINES);
   glColor3f(1.0, 0.0, 0.0);
   glVertex3f(0.0, 0.0, 0.0);
@@ -28,6 +27,7 @@ void render()
   glPointSize(2);
   glColor3f(1.0, 1.0, 0.0);
 
+  //Draw all vertecies as points
   if(window_camera.view_mode == 0)
   {
     glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
@@ -37,26 +37,60 @@ void render()
     glDisableClientState(GL_VERTEX_ARRAY);
   }
 
+  //Draw surface vertecies as points
   if(window_camera.view_mode == 1)
   {
     glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.element_buffer);
     glVertexPointer(4, GL_FLOAT, 0, 0);
     glEnableClientState(GL_VERTEX_ARRAY);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.element_buffer);
     glDrawElements(GL_POINTS, simulation.num_draw_elements, GL_UNSIGNED_INT, 0);
     glDisableClientState(GL_VERTEX_ARRAY);
   }
 
+  //Draw solid surface representation
   if(window_camera.view_mode == 2)
   {
     glEnable(GL_LIGHTING);
     glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.triangle_buffer);
     glVertexPointer(4, GL_FLOAT, 0, 0);
     glEnableClientState(GL_VERTEX_ARRAY);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.triangle_buffer);
     glDrawElements(GL_TRIANGLES, simulation.num_draw_triangles, GL_UNSIGNED_INT, 0);
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisable(GL_LIGHTING);
+  }
+
+  // Entered selection mode, render vertex indecies instead and find selected vertex, but don't render
+  if(window_camera.view_mode < 0)
+  {
+    glClearColor(1.0, 1.0, 1.0, 1.0); // max int is background
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glPointSize(20);
+    glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
+    glVertexPointer(4, GL_FLOAT, 0, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, simulation.color_id_buffer);
+    glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.element_buffer);
+    glDrawElements(GL_POINTS, simulation.num_draw_elements, GL_UNSIGNED_INT, 0);
+    glDisableClientState(GL_COLOR_ARRAY);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    unsigned int index = 0;
+    glReadPixels(input_state.mouseX, main_window.height - input_state.mouseY, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &index);
+    if(index != 0xFFFFFFFF)
+    {
+      printf("Vertex Selected: %u Color: %u, %u, %u, %u\n", index,
+        (unsigned int) ((index >> 0) & 0xFF),
+        (unsigned int) ((index >> 8) & 0xFF),
+        (unsigned int) ((index >> 16) & 0xFF),
+        (unsigned int) ((index >> 24) & 0xFF));
+    }
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    window_camera.view_mode *= -1;
+    glutPostRedisplay();
+    return;
   }
 
   glutSwapBuffers();
@@ -66,13 +100,13 @@ void render()
 bool initGLUT()
 {
   //Initialize main window
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH);
   main_window.width = 640;
   main_window.height = 480;
   glutInitWindowSize(main_window.width, main_window.height);
   glutInitWindowPosition(0,0);
-  glClearColor(0.0, 0.0, 0.0, 1.0);
   glutCreateWindow("OpenCL Mass Spring Particle System");
+  glClearColor(0.0, 0.0, 0.0, 1.0);
 
   glutDisplayFunc(render);
 

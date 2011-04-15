@@ -14,6 +14,7 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   int num_colors = 0;
   int vert_per_dim = 0;
   float (*vertex_positions)[4];
+  GLubyte (*vertex_colors)[4]; //used to color vertecies for coloring
   float (*vertex_init)[4];
   GLint *side_vertex_indecies; //used to fill IBO
   GLint *side_triangle_indecies; // used to fill IBO for triangles
@@ -44,9 +45,10 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   fscanf(spring_file, "%d %d %d\n", &vert_per_dim, &num_vertecies, &num_springs);
   fscanf(color_file, "%d\n", &num_colors);
 
-  side_vertex_indecies = new int[(6 * (vert_per_dim * vert_per_dim))];
-  side_triangle_indecies = new int[(6 * (vert_per_dim * vert_per_dim)) * 6];
+  side_vertex_indecies = new GLint[(6 * (vert_per_dim * vert_per_dim))];
+  side_triangle_indecies = new GLint[(6 * (vert_per_dim * vert_per_dim)) * 6];
   vertex_positions = new float[num_vertecies][4];
+  vertex_colors = new GLubyte[num_vertecies][4];
   vertex_init = new float[num_vertecies][4];
   springs = new int[num_springs][2];
   spring_colors = new int[num_springs];
@@ -78,6 +80,11 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
     vertex_positions[i][1] = (float)((i%v2)/v)/(float)(v-1);
     vertex_positions[i][2] = (float)(i%v)/(float)(v-1);
     vertex_positions[i][3] = 1.0f;
+   
+    vertex_colors[i][0] = (i >>  0) & 0xFF;
+    vertex_colors[i][1] = (i >>  8) & 0xFF;
+    vertex_colors[i][2] = (i >> 16) & 0xFF;
+    vertex_colors[i][3] = (i >> 24) & 0xFF;
     //printf("%f %f %f\n", vertex_positions[i][0], vertex_positions[i][1], vertex_positions[i][2]);
 
     //Detect edge vertecies and triangles and create drawlists for them
@@ -189,6 +196,12 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.element_buffer);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, side_vert_fill * sizeof(GLint), side_vertex_indecies, GL_STATIC_DRAW);
 
+  //Create color buffer for coloring vertex points
+  glGenBuffers(1, &(simulation.color_id_buffer));
+  glBindBuffer(GL_ARRAY_BUFFER, simulation.color_id_buffer);
+  glBufferData(GL_ARRAY_BUFFER, simulation.num_points * 4 * sizeof(GLubyte), vertex_colors, GL_STATIC_DRAW);
+
+  //Create index buffer for drawing triangles
   glGenBuffers(1, &(simulation.triangle_buffer));
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.triangle_buffer);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, side_triangle_fill * sizeof(GLint), side_triangle_indecies, GL_STATIC_DRAW);
@@ -294,8 +307,9 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   delete spring_colors;
   delete[] springs;
   delete[] vertex_init;
+  delete[] vertex_colors;
   delete[] vertex_positions;
+  delete[] side_vertex_indecies;
   
   delete[] side_triangle_indecies;
-  delete[] side_vertex_indecies;
 }
