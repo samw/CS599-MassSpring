@@ -73,5 +73,8 @@
     <None Include="edgeColors">
       <Filter>Resource Files\cube</Filter>
     </None>
+    <None Include="set_acceleration.cl">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

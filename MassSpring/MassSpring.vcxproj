@@ -126,6 +126,7 @@
     <None Include="cubeEdges" />
     <None Include="edgeColors" />
     <None Include="move.cl" />
+    <None Include="set_acceleration.cl" />
     <None Include="spring_kernel.cl" />
     <None Include="timestep.cl" />
   </ItemGroup>

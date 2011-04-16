@@ -1,3 +1,4 @@
+#include "MassSpring.h"
 #include "input.h"
 #include "RenderSystem.h"
 
@@ -88,8 +89,15 @@ void mouseButton(int button, int state, int x, int y)
   {
     case GLUT_LEFT_BUTTON:
       input_state.left = (state==GLUT_DOWN);
-      if(input_state.left == GLUT_DOWN)
+      if(input_state.left)
+      {
         window_camera.view_mode *= -1;
+        simulation.vertex_pulling |= 1;
+      }
+      else
+      {
+        simulation.vertex_pulling = 0;
+      }
       break;
     case GLUT_MIDDLE_BUTTON:
       input_state.middle = (state==GLUT_DOWN);

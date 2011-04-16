@@ -1,5 +1,7 @@
 #include "CLFunctions.h"
 #include "MassSpring.h"
+#include "input.h"
+#include "RenderSystem.h"
 #include <stdio.h>
 
 
@@ -220,9 +222,14 @@ void runCubeTestKernel()
 void configureTestKernelRK4()
 {
 	//acceleration kernel
-  cl_float initvector[4] = {0.0,-0.0,0.0,0.0};
+  cl_float initvector[4] = {0.0,0.0,0.0,0.0};
   clSetKernelArg(cl_components.acceleration_kernel, 0, sizeof(cl_uint), &(simulation.acceleration));
   clSetKernelArg(cl_components.acceleration_kernel, 1, sizeof(cl_float4), initvector);
+
+  //set accelration kernel
+  clSetKernelArg(cl_components.pull_vertex_kernel, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.pull_vertex_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
+  clSetKernelArg(cl_components.pull_vertex_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
 
   //spring kernel (non-changing arguments)
   clSetKernelArg(cl_components.batch_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
@@ -289,11 +296,54 @@ void runTestKernelRK4()
 
   clEnqueueAcquireGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, &lastevent);
 
-  //zero accelerations for first two points
+  //zero accelerations
   clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
                          1, NULL, (size_t *) &simulation.num_points, NULL, 1, &lastevent, &currentevent);
   clReleaseEvent(lastevent);
   lastevent = currentevent;
+
+  //Apply acceleration if we are dragging a vertex around
+  if(simulation.vertex_pulling == 3)
+  {
+    //printf("Pulling: ");
+    double mouse[3];
+    double mouse2[3];
+    double modelview[16];
+    double proj[16];
+    int view[4];
+    float cam_forward[4];
+    float mouse_position[4];
+
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+    glGetDoublev(GL_PROJECTION_MATRIX, proj);
+    glGetIntegerv(GL_VIEWPORT, view);
+
+    clSetKernelArg(cl_components.pull_vertex_kernel, 3, sizeof(cl_int), &(simulation.last_vertex_selected));
+
+    gluUnProject(input_state.mouseX, main_window.height - input_state.mouseY, 0.0,
+      modelview, proj, view, &mouse[0], &mouse[1], &mouse[2]);
+    //printf("%f, %f, %f\n", mouse[0], mouse[1], mouse[2]);
+    mouse_position[0] = mouse[0];
+    mouse_position[1] = mouse[1];
+    mouse_position[2] = mouse[2];
+    mouse_position[3] = 1.0;
+    clSetKernelArg(cl_components.pull_vertex_kernel, 4, sizeof(cl_float4), (&mouse_position));
+
+    gluUnProject(input_state.mouseX, main_window.height - input_state.mouseY, 10.0,
+      modelview, proj, view, &mouse2[0], &mouse2[1], &mouse2[2]);
+    cam_forward[0] = mouse2[0] - mouse[0];
+    cam_forward[1] = mouse2[1] - mouse[1];
+    cam_forward[2] = mouse2[2] - mouse[2];
+    cam_forward[3] = 0.0;
+    clSetKernelArg(cl_components.pull_vertex_kernel, 5, sizeof(cl_float4), &(cam_forward));
+
+    //actually run the kernel for the specified mouse
+    int work_size[1] = {1};
+    clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.pull_vertex_kernel,
+                         1, NULL, (size_t *) &work_size, NULL, 1, &lastevent, &currentevent);
+    clReleaseEvent(lastevent);
+    lastevent = currentevent;
+  }
 
   clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
   clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
@@ -322,6 +372,15 @@ void runTestKernelRK4()
                          1, NULL, (size_t *) &simulation.num_points, NULL, 1, &lastevent, &currentevent);
   clReleaseEvent(lastevent);
   lastevent = currentevent;
+  //Apply mouse pull
+  if(simulation.vertex_pulling == 3)
+  {
+    int work_size[1] = {1};
+    clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.pull_vertex_kernel,
+      1, NULL, (size_t *) &work_size, NULL, 1, &lastevent, &currentevent);
+    clReleaseEvent(lastevent);
+    lastevent = currentevent;
+  }
 
 
   //recompute acceleration
@@ -346,6 +405,15 @@ void runTestKernelRK4()
                          1, NULL, (size_t *) &simulation.num_points, NULL, 1, &lastevent, &currentevent);
   clReleaseEvent(lastevent);
   lastevent = currentevent;
+  //Apply mouse pull
+  if(simulation.vertex_pulling == 3)
+  {
+    int work_size[1] = {1};
+    clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.pull_vertex_kernel,
+      1, NULL, (size_t *) &work_size, NULL, 1, &lastevent, &currentevent);
+    clReleaseEvent(lastevent);
+    lastevent = currentevent;
+  }
 
   //recompute acceleration
   for(int i = 0; i < simulation.num_batches; i++)
@@ -369,6 +437,15 @@ void runTestKernelRK4()
                          1, NULL, (size_t *) &simulation.num_points, NULL, 1, &lastevent, &currentevent);
   clReleaseEvent(lastevent);
   lastevent = currentevent;
+  //Apply mouse pull
+  if(simulation.vertex_pulling == 3)
+  {
+    int work_size[1] = {1};
+    clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.pull_vertex_kernel,
+      1, NULL, (size_t *) &work_size, NULL, 1, &lastevent, &currentevent);
+    clReleaseEvent(lastevent);
+    lastevent = currentevent;
+  }
 
   //recompute acceleration
   for(int i = 0; i < simulation.num_batches; i++)
@@ -480,6 +557,11 @@ bool initOpenCL()
 	  &cl_components.rk4_kernel_2, &cl_components.rk4_kernel_3, &cl_components.rk4_kernel_4};
   loadCLCodeFile("timestep.cl", cl_components.opencl_context, num_devices, devices, 7,
                  step_kernel_names, step_kernels);
+
+  char *set_accleration_names[1] = {"pull_vertex"};
+  cl_kernel *set_accleration_kernels[1] = {&cl_components.pull_vertex_kernel};
+  loadCLCodeFile("set_acceleration.cl", cl_components.opencl_context, num_devices, devices, 1,
+                 set_accleration_names, set_accleration_kernels);
 
   delete platforms;
   delete devices;

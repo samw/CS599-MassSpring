@@ -13,17 +13,22 @@ struct system
   GLuint element_buffer;  //Buffer for vertecies on outside of model (used for drawing side as dots)
   GLuint color_id_buffer; //Buffer to color vertecies for mouse choosing
   GLuint triangle_buffer; //Buffer for vertex triplets creating triangles
+  int last_vertex_selected;
+  int vertex_pulling;
+
   cl_mem position;
   cl_mem velocity;
   cl_mem acceleration;
   cl_mem springs;
   cl_mem springProperties;
-  cl_mem bufferP;
-  cl_mem bufferV;
+
   int num_batches;
   int *batch_sizes;
   cl_mem *springBatches;
   cl_mem *springPropertyBatches;
+
+  cl_mem bufferP;
+  cl_mem bufferV;
   cl_mem f1p;
   cl_mem f1v;
   cl_mem f2p;

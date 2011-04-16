@@ -81,6 +81,8 @@ void render()
     glReadPixels(input_state.mouseX, main_window.height - input_state.mouseY, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &index);
     if(index != 0xFFFFFFFF)
     {
+      simulation.last_vertex_selected = index;
+      simulation.vertex_pulling |= 2;
       printf("Vertex Selected: %u Color: %u, %u, %u, %u\n", index,
         (unsigned int) ((index >> 0) & 0xFF),
         (unsigned int) ((index >> 8) & 0xFF),
