@@ -26,6 +26,9 @@ struct system
   int *batch_sizes;
   cl_mem *springBatches;
   cl_mem *springPropertyBatches;
+  
+  cl_mem pull_position;
+  cl_mem pull_value;
 
   cl_mem bufferP;
   cl_mem bufferV;

@@ -177,10 +177,10 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   }
 
   // Pull out a corner so we can see it snap back in
-  vertex_positions[num_vertecies-1][0] = 2.0f;
-  vertex_positions[num_vertecies-1][1] = 2.0f;
-  vertex_positions[num_vertecies-1][2] = 2.0f;
-  vertex_positions[num_vertecies-1][3] = 1.0f;
+  //vertex_positions[num_vertecies-1][0] = 2.0f;
+  //vertex_positions[num_vertecies-1][1] = 2.0f;
+  //vertex_positions[num_vertecies-1][2] = 2.0f;
+  //vertex_positions[num_vertecies-1][3] = 1.0f;
   
   //Put vertex positions into vertex buffer
   //Create OpenGL buffer
@@ -259,6 +259,15 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
                                       sizeof(cl_float) * 4 * simulation.num_points, vertex_init, &error);
   if(error) printf("f4v Buffer Error: %d", error);
 
+  float pull_init[4] = {0.0, 0.0, 0.0, 0.0};
+  simulation.pull_value = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                         sizeof(cl_float4), &pull_init, &error);
+  if(error) printf("Pull Init Buffer Error: %d", error);
+
+  simulation.pull_position = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                         sizeof(cl_float4), &pull_init, &error);
+  if(error) printf("Pull Position Buffer Error: %d", error);
+
   //Put spring information into videocard (spring information is the 2 vertecies it connects)
   //At same time fill in spring properties
   //We need to put information as individual batches
@@ -284,7 +293,7 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
 #undef SQUARE
       spring_properties[j][0] = 1.0 * rest; //reset length 
       spring_properties[j][1] = 1000.0; //spring force
-      spring_properties[j][2] = 2.0; //damepning force
+      spring_properties[j][2] = 5.0; //damepning force
       spring_properties[j][3] = 0.0; //<empty>
     }
     simulation.springBatches[i] = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,

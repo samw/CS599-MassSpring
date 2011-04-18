@@ -221,15 +221,20 @@ void runCubeTestKernel()
 
 void configureTestKernelRK4()
 {
-	//acceleration kernel
   cl_float initvector[4] = {0.0,0.0,0.0,0.0};
-  clSetKernelArg(cl_components.acceleration_kernel, 0, sizeof(cl_uint), &(simulation.acceleration));
-  clSetKernelArg(cl_components.acceleration_kernel, 1, sizeof(cl_float4), initvector);
 
-  //set accelration kernel
-  clSetKernelArg(cl_components.pull_vertex_kernel, 0, sizeof(cl_uint), &(simulation.position));
-  clSetKernelArg(cl_components.pull_vertex_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
-  clSetKernelArg(cl_components.pull_vertex_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
+  //pull accelration kernel
+  clSetKernelArg(cl_components.calculate_pull_kernel, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.calculate_pull_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
+  clSetKernelArg(cl_components.calculate_pull_kernel, 2, sizeof(cl_uint), &(simulation.pull_position));
+  clSetKernelArg(cl_components.calculate_pull_kernel, 3, sizeof(cl_uint), &(simulation.pull_value));
+
+  //init acceleration kernel
+  clSetKernelArg(cl_components.init_acceleration_kernel, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.init_acceleration_kernel, 1, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.init_acceleration_kernel, 2, sizeof(cl_uint), &(simulation.pull_position));
+  clSetKernelArg(cl_components.init_acceleration_kernel, 3, sizeof(cl_uint), &(simulation.pull_value));
+  clSetKernelArg(cl_components.init_acceleration_kernel, 4, sizeof(cl_float4), initvector);
 
   //spring kernel (non-changing arguments)
   clSetKernelArg(cl_components.batch_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
@@ -296,13 +301,7 @@ void runTestKernelRK4()
 
   clEnqueueAcquireGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, &lastevent);
 
-  //zero accelerations
-  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
-                         1, NULL, (size_t *) &simulation.num_points, NULL, 1, &lastevent, &currentevent);
-  clReleaseEvent(lastevent);
-  lastevent = currentevent;
-
-  //Apply acceleration if we are dragging a vertex around
+  //zero acceleration
   if(simulation.vertex_pulling == 3)
   {
     //printf("Pulling: ");
@@ -317,17 +316,16 @@ void runTestKernelRK4()
     glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
     glGetDoublev(GL_PROJECTION_MATRIX, proj);
     glGetIntegerv(GL_VIEWPORT, view);
-
-    clSetKernelArg(cl_components.pull_vertex_kernel, 3, sizeof(cl_int), &(simulation.last_vertex_selected));
+    
+    clSetKernelArg(cl_components.calculate_pull_kernel, 4, sizeof(cl_int), &(simulation.last_vertex_selected));
 
     gluUnProject(input_state.mouseX, main_window.height - input_state.mouseY, 0.0,
       modelview, proj, view, &mouse[0], &mouse[1], &mouse[2]);
-    //printf("%f, %f, %f\n", mouse[0], mouse[1], mouse[2]);
     mouse_position[0] = mouse[0];
     mouse_position[1] = mouse[1];
     mouse_position[2] = mouse[2];
     mouse_position[3] = 1.0;
-    clSetKernelArg(cl_components.pull_vertex_kernel, 4, sizeof(cl_float4), (&mouse_position));
+    clSetKernelArg(cl_components.calculate_pull_kernel, 5, sizeof(cl_float4), (&mouse_position));
 
     gluUnProject(input_state.mouseX, main_window.height - input_state.mouseY, 10.0,
       modelview, proj, view, &mouse2[0], &mouse2[1], &mouse2[2]);
@@ -335,15 +333,27 @@ void runTestKernelRK4()
     cam_forward[1] = mouse2[1] - mouse[1];
     cam_forward[2] = mouse2[2] - mouse[2];
     cam_forward[3] = 0.0;
-    clSetKernelArg(cl_components.pull_vertex_kernel, 5, sizeof(cl_float4), &(cam_forward));
+    clSetKernelArg(cl_components.calculate_pull_kernel, 6, sizeof(cl_float4), &(cam_forward));
 
     //actually run the kernel for the specified mouse
     int work_size[1] = {1};
-    clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.pull_vertex_kernel,
+    clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.calculate_pull_kernel,
                          1, NULL, (size_t *) &work_size, NULL, 1, &lastevent, &currentevent);
     clReleaseEvent(lastevent);
     lastevent = currentevent;
   }
+  else
+  {
+    float init[4] = {0.0, 0.0, 0.0, 0.0};
+    clEnqueueWriteBuffer(cl_components.command_queue, simulation.pull_value, FALSE, 0, sizeof(cl_float4), init, 1, &lastevent, &currentevent);
+    clReleaseEvent(lastevent);
+    lastevent = currentevent;
+  }
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.init_acceleration_kernel,
+                         1, NULL, (size_t *) &simulation.num_points, NULL, 1, &lastevent, &currentevent);
+  clReleaseEvent(lastevent);
+  lastevent = currentevent;
+  //done setting up initial accelerations
 
   clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
   clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
@@ -367,21 +377,11 @@ void runTestKernelRK4()
   clReleaseEvent(lastevent);
   lastevent = currentevent;
 
-  //zero accel
-  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
+  //zero acceleration
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.init_acceleration_kernel,
                          1, NULL, (size_t *) &simulation.num_points, NULL, 1, &lastevent, &currentevent);
   clReleaseEvent(lastevent);
   lastevent = currentevent;
-  //Apply mouse pull
-  if(simulation.vertex_pulling == 3)
-  {
-    int work_size[1] = {1};
-    clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.pull_vertex_kernel,
-      1, NULL, (size_t *) &work_size, NULL, 1, &lastevent, &currentevent);
-    clReleaseEvent(lastevent);
-    lastevent = currentevent;
-  }
-
 
   //recompute acceleration
   for(int i = 0; i < simulation.num_batches; i++)
@@ -400,20 +400,11 @@ void runTestKernelRK4()
   clReleaseEvent(lastevent);
   lastevent = currentevent;
 
-  //zero accel
-  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
+  //zero acceleration
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.init_acceleration_kernel,
                          1, NULL, (size_t *) &simulation.num_points, NULL, 1, &lastevent, &currentevent);
   clReleaseEvent(lastevent);
   lastevent = currentevent;
-  //Apply mouse pull
-  if(simulation.vertex_pulling == 3)
-  {
-    int work_size[1] = {1};
-    clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.pull_vertex_kernel,
-      1, NULL, (size_t *) &work_size, NULL, 1, &lastevent, &currentevent);
-    clReleaseEvent(lastevent);
-    lastevent = currentevent;
-  }
 
   //recompute acceleration
   for(int i = 0; i < simulation.num_batches; i++)
@@ -433,19 +424,10 @@ void runTestKernelRK4()
   lastevent = currentevent;
 
   //zero accel
-  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.acceleration_kernel,
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.init_acceleration_kernel,
                          1, NULL, (size_t *) &simulation.num_points, NULL, 1, &lastevent, &currentevent);
   clReleaseEvent(lastevent);
   lastevent = currentevent;
-  //Apply mouse pull
-  if(simulation.vertex_pulling == 3)
-  {
-    int work_size[1] = {1};
-    clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.pull_vertex_kernel,
-      1, NULL, (size_t *) &work_size, NULL, 1, &lastevent, &currentevent);
-    clReleaseEvent(lastevent);
-    lastevent = currentevent;
-  }
 
   //recompute acceleration
   for(int i = 0; i < simulation.num_batches; i++)
@@ -542,9 +524,11 @@ bool initOpenCL()
   //loadCLCodeFile("move.cl", cl_components.opencl_context, num_devices, devices, 1,
   //               move_kernel_names, move_kernels);
 
-  char *acceleration_kernel_names[1] = {"acceleration_kernel"};
-  cl_kernel *acceleration_kernels[1] = {&cl_components.acceleration_kernel};
-  loadCLCodeFile("accelinit.cl", cl_components.opencl_context, num_devices, devices, 1,
+  char *acceleration_kernel_names[4] = {"acceleration_kernel", "pull_vertex", "calculate_pull_acceleration",
+                                        "init_acceleration_kernel"};
+  cl_kernel *acceleration_kernels[4] = {&cl_components.acceleration_kernel, &cl_components.pull_vertex_kernel,
+                                        &cl_components.calculate_pull_kernel, &cl_components.init_acceleration_kernel};
+  loadCLCodeFile("accelinit.cl", cl_components.opencl_context, num_devices, devices, 4,
                  acceleration_kernel_names, acceleration_kernels);
   
   char *spring_kernel_names[2] = {"spring_kernel_single", "spring_kernel_batch"};
@@ -553,15 +537,11 @@ bool initOpenCL()
                  spring_kernel_names, spring_kernels);
 
   char *step_kernel_names[7] = {"euler_kernel", "midpoint_kernel_1", "midpoint_kernel_2","rk4_kernel_1","rk4_kernel_2","rk4_kernel_3","rk4_kernel_4"};
-  cl_kernel *step_kernels[7] = {&cl_components.euler_kernel, &cl_components.midpoint_kernel_1, &cl_components.midpoint_kernel_2, &cl_components.rk4_kernel_1,
-	  &cl_components.rk4_kernel_2, &cl_components.rk4_kernel_3, &cl_components.rk4_kernel_4};
+  cl_kernel *step_kernels[7] = {&cl_components.euler_kernel, &cl_components.midpoint_kernel_1,
+                                &cl_components.midpoint_kernel_2, &cl_components.rk4_kernel_1,
+                            	  &cl_components.rk4_kernel_2, &cl_components.rk4_kernel_3, &cl_components.rk4_kernel_4};
   loadCLCodeFile("timestep.cl", cl_components.opencl_context, num_devices, devices, 7,
                  step_kernel_names, step_kernels);
-
-  char *set_accleration_names[1] = {"pull_vertex"};
-  cl_kernel *set_accleration_kernels[1] = {&cl_components.pull_vertex_kernel};
-  loadCLCodeFile("set_acceleration.cl", cl_components.opencl_context, num_devices, devices, 1,
-                 set_accleration_names, set_accleration_kernels);
 
   delete platforms;
   delete devices;
@@ -575,7 +555,7 @@ bool loadCLCodeFile(char *file, cl_context context, int num_devices, cl_device_i
   cl_int error = 0;
   //Compile source and create kernel
   size_t source_size;
-  char source[10000];
+  char source[50000];
   const char *sourcelist[1] = {source};
 
   printf("Compiling file %s\n", file);

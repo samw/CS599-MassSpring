@@ -9,6 +9,9 @@ struct cl_system
   cl_command_queue command_queue;
   cl_kernel opencl_kernel;
   cl_kernel acceleration_kernel;
+  cl_kernel pull_vertex_kernel;
+  cl_kernel calculate_pull_kernel;
+  cl_kernel init_acceleration_kernel;
   cl_kernel single_spring_kernel;
   cl_kernel batch_spring_kernel;
   cl_kernel euler_kernel;
@@ -18,7 +21,6 @@ struct cl_system
   cl_kernel rk4_kernel_2;
   cl_kernel rk4_kernel_3;
   cl_kernel rk4_kernel_4;
-  cl_kernel pull_vertex_kernel;
 };
 
 extern struct cl_system cl_components;
