@@ -49,18 +49,50 @@ __kernel void calculate_pull_acceleration(__global float4 *position, __global fl
   diff = normalize(diff);
   forcemagnitude = -khook * (len);
   forcemagnitude += -kdamp*dampingmagnitude/len;
-  if(forcemagnitude > 2) forcemagnitude = 2;
+  if(forcemagnitude > 10) forcemagnitude = 10;
   diff = diff * forcemagnitude;
   *pull_acceleration = diff;
 }
 
-__kernel void init_acceleration_kernel(__global float4 *positions, __global float4 *acceleration, __global float4 *pull_position, __global float4 *pull_value, float4 initializer)
+__kernel void init_acceleration_kernel(
+  __global float4 *positions, global float4 *velocitites, __global float4 *acceleration,
+  __global float4 *pull_position, __global float4 *pull_value, float4 initializer)
 {
    int element = get_global_id(0);
-   float maxdistance = 0.1;
+   float maxdistance = 0.2;
    float dist = distance( *pull_position, positions[element] );
+   float4 clamp;
+   clamp.s0 = min( 2.0, max(positions[element].s0, -2.0));
+   clamp.s1 = min( 4.0, max(positions[element].s1, -0.0));
+   clamp.s2 = min( 2.0, max(positions[element].s2, -2.0));
+   clamp.s3 = 1.0;
    if( dist < maxdistance)
-     acceleration[element] = *pull_value * dot(normalize(*pull_value) , (normalize(cross( (positions[element] - *pull_position), cross(*pull_value, (positions[element] - *pull_position))))));
+   {
+     acceleration[element] = *pull_value;
+     if(length(velocitites[element]) > 3.0)
+     {
+       velocitites[element] = (normalize(velocitites[element])*3.0);
+     }
+   }
    else
      acceleration[element] = initializer;
+
+  if(clamp.s0 != positions[element].s0 || clamp.s1 != positions[element].s1 || clamp.s2 != positions[element].s2)
+  {
+    float khook = 1000;
+    float kdamp = 20.0;
+
+    float4 diff, vdiff;
+    float len, forcemagnitude, dampingmagnitude;
+    diff = positions[element] - clamp;
+    vdiff = velocitites[element];
+    dampingmagnitude= dot(vdiff, diff);
+    len = length(diff);
+    if( len == 0.0 ) return;
+    diff = normalize(diff);
+    forcemagnitude = -khook * (len);
+    forcemagnitude += -kdamp*dampingmagnitude/len;
+    diff = diff * forcemagnitude;
+    acceleration[element] = diff;
+  }
 }

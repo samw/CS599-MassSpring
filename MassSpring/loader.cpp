@@ -292,8 +292,8 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
         SQUARE((vertex_positions[batchedsprings[j][0]][2] - vertex_positions[batchedsprings[j][1]][2])) );
 #undef SQUARE
       spring_properties[j][0] = 1.0 * rest; //reset length 
-      spring_properties[j][1] = 1000.0; //spring force
-      spring_properties[j][2] = 5.0; //damepning force
+      spring_properties[j][1] = 5000.0; //spring force
+      spring_properties[j][2] = 10.0; //damepning force
       spring_properties[j][3] = 0.0; //<empty>
     }
     simulation.springBatches[i] = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,

@@ -230,11 +230,14 @@ void configureTestKernelRK4()
   clSetKernelArg(cl_components.calculate_pull_kernel, 3, sizeof(cl_uint), &(simulation.pull_value));
 
   //init acceleration kernel
+  initvector[1] = -5.0;
   clSetKernelArg(cl_components.init_acceleration_kernel, 0, sizeof(cl_uint), &(simulation.position));
-  clSetKernelArg(cl_components.init_acceleration_kernel, 1, sizeof(cl_uint), &(simulation.acceleration));
-  clSetKernelArg(cl_components.init_acceleration_kernel, 2, sizeof(cl_uint), &(simulation.pull_position));
-  clSetKernelArg(cl_components.init_acceleration_kernel, 3, sizeof(cl_uint), &(simulation.pull_value));
-  clSetKernelArg(cl_components.init_acceleration_kernel, 4, sizeof(cl_float4), initvector);
+  clSetKernelArg(cl_components.init_acceleration_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
+  clSetKernelArg(cl_components.init_acceleration_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.init_acceleration_kernel, 3, sizeof(cl_uint), &(simulation.pull_position));
+  clSetKernelArg(cl_components.init_acceleration_kernel, 4, sizeof(cl_uint), &(simulation.pull_value));
+  clSetKernelArg(cl_components.init_acceleration_kernel, 5, sizeof(cl_float4), initvector);
+  initvector[1] = 0.0;
 
   //spring kernel (non-changing arguments)
   clSetKernelArg(cl_components.batch_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));

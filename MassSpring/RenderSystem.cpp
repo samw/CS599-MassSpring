@@ -239,7 +239,7 @@ bool initGLUT()
   LIGHTSETUP (5);
   LIGHTSETUP (6);
   LIGHTSETUP (7);
-   
+
   glEnable(GL_DEPTH_TEST);
 
   return true;
