@@ -62,9 +62,9 @@ __kernel void init_acceleration_kernel(
    float maxdistance = 0.2;
    float dist = distance( *pull_position, positions[element] );
    float4 clamp;
-   clamp.s0 = min( 2.0, max(positions[element].s0, -2.0));
-   clamp.s1 = min( 4.0, max(positions[element].s1, -0.0));
-   clamp.s2 = min( 2.0, max(positions[element].s2, -2.0));
+   clamp.s0 = min( 10.0, max(positions[element].s0, -10.0));
+   clamp.s1 = min( 10.0, max(positions[element].s1, -0.0));
+   clamp.s2 = min( 10.0, max(positions[element].s2, -10.0));
    clamp.s3 = 1.0;
    if( dist < maxdistance)
    {

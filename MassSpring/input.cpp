@@ -29,16 +29,16 @@ void keyboardSpecialFunction(int key, int x, int y)
   switch (key)
   {
   case GLUT_KEY_UP:
-    moveCameraForward(0.025);
+    moveCameraForward(0.125);
     break;
   case GLUT_KEY_DOWN:
-    moveCameraForward(-0.025);
+    moveCameraForward(-0.125);
     break;
   case GLUT_KEY_LEFT:
-    moveCamera(-0.025, 0.0);
+    moveCamera(-0.125, 0.0);
     break;
   case GLUT_KEY_RIGHT:
-    moveCamera(0.025, 0.0);
+    moveCamera(0.125, 0.0);
     break;
   }
 }

@@ -27,10 +27,11 @@ int main(int argc, char** argv)
   //configureCubeTestKernel();
   // glutIdleFunc(runCubeTestKernel);
   
-  generateJelloCube("cubeEdges","edgeColors");
+  //generateJelloCube("cubeEdges","edgeColors");
+  
+  generateDino("dinoVerts","dinoEdges","dinoColors","dinoSurface","dinoSurfaceP");
   configureTestKernelRK4();
   glutIdleFunc(runTestKernelRK4);
-
   //atexit(cleanup);
   glutMainLoop();
 

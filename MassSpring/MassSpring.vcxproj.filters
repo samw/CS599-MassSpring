@@ -16,6 +16,9 @@
     <Filter Include="Resource Files\cube">
       <UniqueIdentifier>{d8c58707-f9f6-4a08-a3ae-648b01d45b23}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\dino">
+      <UniqueIdentifier>{e09be7ad-c11b-478d-b9c4-9fc496279846}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MassSpring.cpp">
@@ -75,6 +78,21 @@
     </None>
     <None Include="set_acceleration.cl">
       <Filter>Resource Files</Filter>
+    </None>
+    <None Include="dinoColors">
+      <Filter>Resource Files\dino</Filter>
+    </None>
+    <None Include="dinoEdges">
+      <Filter>Resource Files\dino</Filter>
+    </None>
+    <None Include="dinoSurface">
+      <Filter>Resource Files\dino</Filter>
+    </None>
+    <None Include="dinoVerts">
+      <Filter>Resource Files\dino</Filter>
+    </None>
+    <None Include="dinoSurfaceP">
+      <Filter>Resource Files\dino</Filter>
     </None>
   </ItemGroup>
 </Project>

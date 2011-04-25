@@ -124,6 +124,11 @@
   <ItemGroup>
     <None Include="accelinit.cl" />
     <None Include="cubeEdges" />
+    <None Include="dinoColors" />
+    <None Include="dinoEdges" />
+    <None Include="dinoSurface" />
+    <None Include="dinoSurfaceP" />
+    <None Include="dinoVerts" />
     <None Include="edgeColors" />
     <None Include="move.cl" />
     <None Include="set_acceleration.cl" />

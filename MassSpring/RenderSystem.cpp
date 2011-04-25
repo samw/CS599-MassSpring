@@ -24,6 +24,41 @@ void render()
   glVertex3f(0.0, 0.0,0.1);
   glEnd();
 
+  glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+  glBegin(GL_QUADS);
+  glColor3f(1.0,1.0,1.0);
+  glVertex3f(10,10,10);
+  glVertex3f(10,10,-10);
+  glVertex3f(-10,10,-10);
+  glVertex3f(-10,10,10);
+
+  glVertex3f(10,0,10);
+  glVertex3f(10,0,-10);
+  glVertex3f(-10,0,-10);
+  glVertex3f(-10,0,10);
+
+  glVertex3f(10,10,10);
+  glVertex3f(10,0,10);
+  glVertex3f(-10,0,10);
+  glVertex3f(-10,10,10);
+
+  glVertex3f(10,10,-10);
+  glVertex3f(10,0,-10);
+  glVertex3f(-10,0,-10);
+  glVertex3f(-10,10,-10);
+
+  glVertex3f(-10,10,-10);
+  glVertex3f(-10,0,-10);
+  glVertex3f(-10,0,10);
+  glVertex3f(-10,10,10);
+
+  glVertex3f(10,10,-10);
+  glVertex3f(10,0,-10);
+  glVertex3f(10,0,10);
+  glVertex3f(10,10,10);
+  glEnd();
+  glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+
   glPointSize(2);
   glColor3f(1.0, 1.0, 0.0);
 
