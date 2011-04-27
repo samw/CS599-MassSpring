@@ -57,14 +57,14 @@ void render()
   glVertex3f(5,0,5);
   glVertex3f(5,5,5);
   glEnd();
-  glPolygonMode(GL_FRONT,GL_FILL);
+  glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
   //glShadeModel(GL_FLAT);
 
   glPointSize(2);
   glColor3f(1.0, 1.0, 0.0);
 
   //Draw all vertecies as points
-  if(window_camera.view_mode == 0)
+  if(window_camera.view_mode == 3)
   {
     glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
     glVertexPointer(4, GL_FLOAT, 0, 0);
@@ -73,8 +73,27 @@ void render()
     glDisableClientState(GL_VERTEX_ARRAY);
   }
 
+  //Show the selection coloring
+  if(window_camera.view_mode == 4)
+  {
+    glClearColor(1.0, 1.0, 1.0, 1.0); // max int is background
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glPointSize(20);
+    glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
+    glVertexPointer(4, GL_FLOAT, 0, 0);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glBindBuffer(GL_ARRAY_BUFFER, simulation.color_id_buffer);
+    glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0);
+    glEnableClientState(GL_COLOR_ARRAY);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.element_buffer);
+    glDrawElements(GL_POINTS, simulation.num_draw_elements, GL_UNSIGNED_INT, 0);
+    glDisableClientState(GL_COLOR_ARRAY);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+  }
+
   //Draw surface vertecies as points
-  if(window_camera.view_mode == 1)
+  if(window_camera.view_mode == 2)
   {
     glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
     glVertexPointer(4, GL_FLOAT, 0, 0);
@@ -85,7 +104,7 @@ void render()
   }
 
   //Draw solid surface representation
-  if(window_camera.view_mode == 2)
+  if(window_camera.view_mode == 1)
   {
     glEnable(GL_LIGHTING);
     glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
@@ -103,15 +122,6 @@ void render()
 	  glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisable(GL_LIGHTING);
-
-	/*glEnable(GL_LIGHTING);
-    glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
-    glVertexPointer(4, GL_FLOAT, 0, 0);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.tri_buf2);
-    glDrawElements(GL_TRIANGLES, simulation.num_draw_triangles, GL_UNSIGNED_INT, 0);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisable(GL_LIGHTING);*/
   }
 
   // Entered selection mode, render vertex indecies instead and find selected vertex, but don't render

@@ -36,7 +36,7 @@ __kernel void calculate_pull_acceleration(__global float4 *position, __global fl
   float dotp = dot(camera_forward, buffer);
   buffer = camera_position + (camera_forward * dotp);
 
-  float khook = 8000;
+  float khook = 1000;
   float kdamp = 5.0;
 
   float4 diff, vdiff;
@@ -79,7 +79,7 @@ __kernel void init_acceleration_kernel(
 
   if(pclamp.s0 != positions[element].s0 || pclamp.s1 != positions[element].s1 || pclamp.s2 != positions[element].s2)
   {
-    float khook = 1000;
+    float khook = 500;
     float kdamp = 20.0;
 
     float4 diff, vdiff;

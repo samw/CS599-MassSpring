@@ -118,44 +118,97 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
 
       if( xp >= 0 && yp >= 0 && (vertex_positions[i][2] == 0.0 || vertex_positions[i][2] == 1.0))
       {
-        side_triangle_indecies[side_triangle_fill++] = i;
-        side_triangle_indecies[side_triangle_fill++] = xp;
-        side_triangle_indecies[side_triangle_fill++] = yp;
+        if(vertex_positions[i][2] == 0.0)
+        {
+          side_triangle_indecies[side_triangle_fill++] = i;
+          side_triangle_indecies[side_triangle_fill++] = yp;
+          side_triangle_indecies[side_triangle_fill++] = xp;
+        }
+        else
+        {
+          side_triangle_indecies[side_triangle_fill++] = i;
+          side_triangle_indecies[side_triangle_fill++] = xp;
+          side_triangle_indecies[side_triangle_fill++] = yp;
+        }
       }
       if( xn >= 0 && yn >= 0 && (vertex_positions[i][2] == 0.0 || vertex_positions[i][2] == 1.0))
       {
+        if(vertex_positions[i][2] == 0.0)
+        {
+        side_triangle_indecies[side_triangle_fill++] = i;
+        side_triangle_indecies[side_triangle_fill++] = yn;
+        side_triangle_indecies[side_triangle_fill++] = xn;
+        }else
+        {
         side_triangle_indecies[side_triangle_fill++] = i;
         side_triangle_indecies[side_triangle_fill++] = xn;
         side_triangle_indecies[side_triangle_fill++] = yn;
+        }
       }
       if( xp >= 0 && zp >= 0 && (vertex_positions[i][1] == 0.0 || vertex_positions[i][1] == 1.0))
       {
+        if(vertex_positions[i][1] == 0.0)
+        {
         side_triangle_indecies[side_triangle_fill++] = i;
         side_triangle_indecies[side_triangle_fill++] = xp;
         side_triangle_indecies[side_triangle_fill++] = zp;
+        }
+        else
+        {
+        side_triangle_indecies[side_triangle_fill++] = i;
+        side_triangle_indecies[side_triangle_fill++] = zp;
+        side_triangle_indecies[side_triangle_fill++] = xp;
+        }
       }
       if( xn >= 0 && zn >= 0 && (vertex_positions[i][1] == 0.0 || vertex_positions[i][1] == 1.0))
       {
+        if(vertex_positions[i][1] == 0.0)
+        {
         side_triangle_indecies[side_triangle_fill++] = i;
         side_triangle_indecies[side_triangle_fill++] = xn;
         side_triangle_indecies[side_triangle_fill++] = zn;
+        }
+        else
+        {
+        side_triangle_indecies[side_triangle_fill++] = i;
+        side_triangle_indecies[side_triangle_fill++] = zn;
+        side_triangle_indecies[side_triangle_fill++] = xn;
+        }
       }
       if( zp >= 0 && yp >= 0 && (vertex_positions[i][0] == 0.0 || vertex_positions[i][0] == 1.0))
       {
+        if(vertex_positions[i][0] == 0.0)
+        {
+        side_triangle_indecies[side_triangle_fill++] = i;
+        side_triangle_indecies[side_triangle_fill++] = zp;
+        side_triangle_indecies[side_triangle_fill++] = yp;
+        }
+        else
+        {
         side_triangle_indecies[side_triangle_fill++] = i;
         side_triangle_indecies[side_triangle_fill++] = yp;
         side_triangle_indecies[side_triangle_fill++] = zp;
+        }
       }
       if( zn >= 0 && yn >= 0 && (vertex_positions[i][0] == 0.0 || vertex_positions[i][0] == 1.0))
       {
+        if(vertex_positions[i][0] == 0.0)
+        {
+        side_triangle_indecies[side_triangle_fill++] = i;
+        side_triangle_indecies[side_triangle_fill++] = zn;
+        side_triangle_indecies[side_triangle_fill++] = yn;
+        }
+        else
+        {
         side_triangle_indecies[side_triangle_fill++] = i;
         side_triangle_indecies[side_triangle_fill++] = yn;
         side_triangle_indecies[side_triangle_fill++] = zn;
+        }
       }
     }
   }
   simulation.num_draw_elements = side_vert_fill;
-  simulation.num_draw_triangles = side_triangle_fill;
+  simulation.num_draw_triangles = side_triangle_fill/3;
 
   //Count size of each spring batch
   batches = new int*[num_colors];
@@ -207,6 +260,13 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   glGenBuffers(1, &(simulation.triangle_buffer));
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.triangle_buffer);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, side_triangle_fill * sizeof(GLint), side_triangle_indecies, GL_STATIC_DRAW);
+  simulation.triangles = clCreateFromGLBuffer(cl_components.opencl_context, CL_MEM_READ_ONLY, simulation.triangle_buffer, &error);
+
+  //Create normal buffer for shading triangles
+  glGenBuffers(1, &(simulation.normal_buffer));
+  glBindBuffer(GL_ARRAY_BUFFER, simulation.normal_buffer);
+  glBufferData(GL_ARRAY_BUFFER, simulation.num_draw_triangles * 9 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
+  simulation.normals = clCreateFromGLBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE, simulation.normal_buffer, &error);
 
   // Push corner back in to correct rest position
   vertex_positions[num_vertecies-1][0] = 1.0f;
@@ -442,17 +502,18 @@ void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilena
 	  for(int j = 1; j < DINO_NUM; j++){
 		  if(j == 1){
 	  vertex_positions[i+(j*num_vertecies)][3] = 1.0f;
-	  vertex_positions[i+(j*num_vertecies)][0] *=-.3;
-	  vertex_positions[i+(j*num_vertecies)][1] *=.3;
-	  vertex_positions[i+(j*num_vertecies)][2] *=.3;
-	  vertex_positions[i+(j*num_vertecies)][1] += 2;
-      vertex_positions[i+(j*num_vertecies)][0] += 2;
+	  vertex_positions[i+(j*num_vertecies)][0] *=.7;
+	  vertex_positions[i+(j*num_vertecies)][1] *=.7;
+	  vertex_positions[i+(j*num_vertecies)][2] *=.7;
+	  vertex_positions[i+(j*num_vertecies)][1] += 3;
+      vertex_positions[i+(j*num_vertecies)][0] -= 3;
+      vertex_positions[i+(j*num_vertecies)][2] -= 3;
 		  }
 
 		  if(j == 2){
 	  vertex_positions[i+(j*num_vertecies)][3] = 1.0f;
 	  vertex_positions[i+(j*num_vertecies)][0] *=-.3;
-	  vertex_positions[i+(j*num_vertecies)][1] *=.3;
+	  vertex_positions[i+(j*num_vertecies)][1] *=-.3;
 	  vertex_positions[i+(j*num_vertecies)][2] *=.3;
 	  vertex_positions[i+(j*num_vertecies)][2] += 2;
 	  vertex_positions[i+(j*num_vertecies)][1] += 2;
@@ -469,11 +530,12 @@ void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilena
 		  }
 		  if(j == 4){
 	  vertex_positions[i+(j*num_vertecies)][3] = 1.0f;
-	  vertex_positions[i+(j*num_vertecies)][0] *=.1;
-	  vertex_positions[i+(j*num_vertecies)][1] *=.1;
-	  vertex_positions[i+(j*num_vertecies)][2] *=.1;
+	  vertex_positions[i+(j*num_vertecies)][0] *=.2;
+	  vertex_positions[i+(j*num_vertecies)][1] *=.2;
+	  vertex_positions[i+(j*num_vertecies)][2] *=.2;
 	  vertex_positions[i+(j*num_vertecies)][2] += 2;
-	  vertex_positions[i+(j*num_vertecies)][1] += 3;
+	  vertex_positions[i+(j*num_vertecies)][1] += 5;
+	  vertex_positions[i+(j*num_vertecies)][0] += 2;
       vertex_positions[i+(j*num_vertecies)][0] += 2;
 		  }
 		  if(j == 5){
@@ -737,8 +799,8 @@ void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilena
         SQUARE((vertex_positions[batchedsprings[j][0]][2] - vertex_positions[batchedsprings[j][1]][2])) );
 #undef SQUARE
       spring_properties[j][0] = 1.0 * rest; //reset length 
-      spring_properties[j][1] = 200000.0; //spring force
-      spring_properties[j][2] = 100.0; //damepning force
+      spring_properties[j][1] = 15000.0; //spring force
+      spring_properties[j][2] = 30.0; //damepning force
       spring_properties[j][3] = 0.0; //<empty>
     }
     simulation.springBatches[i] = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,

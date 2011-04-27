@@ -1,8 +1,6 @@
 #ifndef _CL_FUNCTIONS_H_
 #define _CL_FUNCTIONS_H_
 
-#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
-
 #include <CL\cl.h>
 
 struct cl_system

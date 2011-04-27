@@ -20,7 +20,7 @@ void keyboardFunction(unsigned char key, int x, int y)
     else glutSetCursor(GLUT_CURSOR_CROSSHAIR);
     break;
   case 'v':
-    window_camera.view_mode = (window_camera.view_mode+1)%3;
+    window_camera.view_mode = (window_camera.view_mode)%4 + 1;
   }
 }
 
