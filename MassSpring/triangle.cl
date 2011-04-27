@@ -12,7 +12,7 @@ __kernel void calculate_normal_kernel(__global float4 *vertecies, __global uint 
   int vertexC = triangles[vertex + 2];
   float4 AB = vertecies[vertexB] - vertecies[vertexA];
   float4 AC = vertecies[vertexC] - vertecies[vertexA];
-  float4 normal = normalize(cross(AB, AC))*10000;
+  float4 normal = normalize(cross(AB, AC))*100000;
   int4 discretized_normal = convert_int4_rtz(normal);
   atom_add(&normals[vertexA*3+0], discretized_normal.s0);
   atom_add(&normals[vertexA*3+1], discretized_normal.s1);
