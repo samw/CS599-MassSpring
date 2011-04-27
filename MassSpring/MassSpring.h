@@ -28,6 +28,8 @@ struct system
   cl_mem tets;
   cl_mem col_info;
   cl_mem surface_verts;
+  cl_mem triangles;
+  cl_mem normals;
 
   int num_batches;
   int *batch_sizes;

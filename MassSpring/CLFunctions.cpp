@@ -305,6 +305,16 @@ void configureTestKernelRK4()
   clSetKernelArg(cl_components.rk4_kernel_4, 11, sizeof(cl_uint), &(simulation.bufferP));
   clSetKernelArg(cl_components.rk4_kernel_4, 12, sizeof(cl_uint), &(simulation.bufferV));
   clSetKernelArg(cl_components.rk4_kernel_4, 13, sizeof(cl_float), &timestep);
+
+  //Triangle normals calculation
+  clSetKernelArg(cl_components.normal_calculation_kernel, 0, sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.normal_calculation_kernel, 1, sizeof(cl_uint), &(simulation.triangles));
+  clSetKernelArg(cl_components.normal_calculation_kernel, 2, sizeof(cl_uint), &(simulation.normals));
+  
+  clSetKernelArg(cl_components.int_to_float, 0, sizeof(cl_uint), &(simulation.normals));
+  clSetKernelArg(cl_components.int_to_float, 1, sizeof(cl_uint), &(simulation.normals));
+
+  clSetKernelArg(cl_components.clear_normal, 0, sizeof(cl_uint), &(simulation.normals));
 }
 
 void runTestKernelRK4()
@@ -479,7 +489,37 @@ void runTestKernelRK4()
   clReleaseEvent(lastevent);
   lastevent = currentevent;
 
+  
+  clEnqueueAcquireGLObjects(cl_components.command_queue, 1, &(simulation.triangles), 1, &lastevent, &currentevent);
+  clReleaseEvent(lastevent);
+  lastevent = currentevent;
+  clEnqueueAcquireGLObjects(cl_components.command_queue, 1, &(simulation.normals), 1, &lastevent, &currentevent);
+  clReleaseEvent(lastevent);
+  lastevent = currentevent;
+  
+  int normals_len = simulation.num_draw_triangles * 9;
+
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.clear_normal, 1, NULL,
+    (size_t*) &normals_len, NULL, 1, &lastevent, &currentevent);
+  clReleaseEvent(lastevent);
+  lastevent = currentevent;
+
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.normal_calculation_kernel, 1, NULL,
+    (size_t*) &simulation.num_draw_triangles, NULL, 1, &lastevent, &currentevent);
+  clReleaseEvent(lastevent);
+  lastevent = currentevent;
+
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.int_to_float, 1, NULL,
+  (size_t*) &normals_len, NULL, 1, &lastevent, &currentevent);
+  clReleaseEvent(lastevent);
+  lastevent = currentevent;
  
+  clEnqueueReleaseGLObjects(cl_components.command_queue, 1,  &(simulation.normals), 1, &lastevent, &currentevent);
+  clReleaseEvent(lastevent);
+  lastevent = currentevent;
+  clEnqueueReleaseGLObjects(cl_components.command_queue, 1, &(simulation.triangles), 1, &lastevent, &currentevent);
+  clReleaseEvent(lastevent);
+  lastevent = currentevent;
   clEnqueueReleaseGLObjects(cl_components.command_queue, 1, &(simulation.position), 1, &lastevent, NULL);
   clReleaseEvent(lastevent);
   clFinish(cl_components.command_queue);
@@ -579,6 +619,10 @@ bool initOpenCL()
   char *collision_kernel_names[1] = {"collision_kernel"};
   cl_kernel *collision_kernels[1] = {&cl_components.collision_kernel};
   loadCLCodeFile("collision.cl",cl_components.opencl_context,num_devices,devices,1,collision_kernel_names,collision_kernels);
+
+  char *normal_kernel_names[3] = {"calculate_normal_kernel", "int_to_float_kernel", "clear_normal_kernel"};
+  cl_kernel *normal_kernels[3] = {&cl_components.normal_calculation_kernel, &cl_components.int_to_float, &cl_components.clear_normal};
+  loadCLCodeFile("triangle.cl",cl_components.opencl_context,num_devices,devices,3,normal_kernel_names,normal_kernels);
 
   delete platforms;
   delete devices;

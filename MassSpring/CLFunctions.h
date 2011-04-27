@@ -1,6 +1,8 @@
 #ifndef _CL_FUNCTIONS_H_
 #define _CL_FUNCTIONS_H_
 
+#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
+
 #include <CL\cl.h>
 
 struct cl_system
@@ -22,6 +24,9 @@ struct cl_system
   cl_kernel rk4_kernel_3;
   cl_kernel rk4_kernel_4;
   cl_kernel collision_kernel;
+  cl_kernel normal_calculation_kernel;
+  cl_kernel int_to_float;
+  cl_kernel clear_normal;
  };
 
 extern struct cl_system cl_components;

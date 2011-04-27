@@ -58,7 +58,7 @@ void render()
   glVertex3f(5,5,5);
   glEnd();
   glPolygonMode(GL_FRONT,GL_FILL);
-  glShadeModel(GL_FLAT);
+  //glShadeModel(GL_FLAT);
 
   glPointSize(2);
   glColor3f(1.0, 1.0, 0.0);
@@ -90,12 +90,17 @@ void render()
     glEnable(GL_LIGHTING);
     glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
     glVertexPointer(4, GL_FLOAT, 0, 0);
-	//glEnableClientState(GL_NORMAL_ARRAY);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	//glBindBuffer(GL_ARRAY_BUFFER,simulation.normal_buffer);
-	//glNormalPointer(GL_FLOAT,0,0);
+	  glEnableClientState(GL_VERTEX_ARRAY);
+	  glBindBuffer(GL_ARRAY_BUFFER,simulation.normal_buffer);
+    glNormalPointer(GL_FLOAT,0,0);
+	  glEnableClientState(GL_NORMAL_ARRAY);
+    glBindBuffer(GL_ARRAY_BUFFER, simulation.color_id_buffer);
+    glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0);
+    glEnableClientState(GL_COLOR_ARRAY);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.triangle_buffer);
-    glDrawElements(GL_TRIANGLES, simulation.num_draw_triangles, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, simulation.num_draw_triangles * 3, GL_UNSIGNED_INT, 0);
+    glDisableClientState(GL_COLOR_ARRAY);
+	  glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisable(GL_LIGHTING);
 
@@ -117,9 +122,9 @@ void render()
     glPointSize(20);
     glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
     glVertexPointer(4, GL_FLOAT, 0, 0);
+    glEnableClientState(GL_VERTEX_ARRAY);
     glBindBuffer(GL_ARRAY_BUFFER, simulation.color_id_buffer);
     glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0);
-    glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.element_buffer);
     glDrawElements(GL_POINTS, simulation.num_draw_elements, GL_UNSIGNED_INT, 0);
@@ -288,6 +293,7 @@ bool initGLUT()
   LIGHTSETUP (6);
   LIGHTSETUP (7);
 
+  glEnable(GL_NORMALIZE);
   glEnable(GL_DEPTH_TEST);
 
   return true;

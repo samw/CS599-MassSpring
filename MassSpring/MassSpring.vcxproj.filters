@@ -41,9 +41,6 @@
     <ClInclude Include="MassSpring.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RenderSystem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CLFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -54,6 +51,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="opengl_headers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -98,6 +98,9 @@
       <Filter>Resource Files\dino</Filter>
     </None>
     <None Include="collision.cl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="triangle.cl">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

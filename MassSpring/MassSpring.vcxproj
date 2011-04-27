@@ -136,6 +136,7 @@
     <None Include="set_acceleration.cl" />
     <None Include="spring_kernel.cl" />
     <None Include="timestep.cl" />
+    <None Include="triangle.cl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -504,10 +504,10 @@ void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilena
 	  vertex_colors[i][3] = (i >> 24) & 0xFF;
 
 	  for(int j = 1; j < DINO_NUM; j++){
-	  vertex_colors[i+(j*num_vertecies)][0] = (i+(j*num_vertecies) >>  0) & 0xFF;
-	  vertex_colors[i+(j*num_vertecies)][1] = (i+(j*num_vertecies) >>  8) & 0xFF;
-	  vertex_colors[i+(j*num_vertecies)][2] = (i+(j*num_vertecies) >> 16) & 0xFF;
-	  vertex_colors[i+(j*num_vertecies)][3] = (i+(j*num_vertecies) >> 24) & 0xFF;
+	  vertex_colors[i+(j*num_vertecies)][0] = ((i+(j*num_vertecies)) >>  0) & 0xFF;
+	  vertex_colors[i+(j*num_vertecies)][1] = ((i+(j*num_vertecies)) >>  8) & 0xFF;
+	  vertex_colors[i+(j*num_vertecies)][2] = ((i+(j*num_vertecies)) >> 16) & 0xFF;
+	  vertex_colors[i+(j*num_vertecies)][3] = ((i+(j*num_vertecies)) >> 24) & 0xFF;
 	  }
   }
   //printf("%f %f %f", vertex_positions[num_vertecies*2-1][0], vertex_positions[num_vertecies*2-1][1], vertex_positions[num_vertecies*2-1][2]);
@@ -603,7 +603,7 @@ void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilena
   simulation.num_points = num_vertecies*DINO_NUM;
   simulation.num_batches = num_colors;
   simulation.num_draw_elements = num_surfvert*DINO_NUM;
-  simulation.num_draw_triangles = 3 * num_surftri*DINO_NUM;
+  simulation.num_draw_triangles = num_surftri*DINO_NUM;
   simulation.num_stets = num_surftet;
   simulation.num_sverts = num_surfvert;
   simulation.num_realpoints = num_vertecies;
@@ -627,15 +627,23 @@ void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilena
   glGenBuffers(1, &(simulation.color_id_buffer));
   glBindBuffer(GL_ARRAY_BUFFER, simulation.color_id_buffer);
   glBufferData(GL_ARRAY_BUFFER, simulation.num_points * 4 * sizeof(GLubyte), vertex_colors, GL_STATIC_DRAW);
-
-  glGenBuffers(1, &(simulation.triangle_buffer));
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.triangle_buffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, simulation.num_draw_triangles * sizeof(GLint), side_triangle_indecies, GL_STATIC_DRAW);
-
+  
   //Create drawing index buffer for drawing vertex points
   glGenBuffers(1, &(simulation.element_buffer));
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.element_buffer);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, simulation.num_draw_elements * sizeof(GLint), side_vertex_indecies, GL_STATIC_DRAW);
+
+  //Create triangle buffer for drawing triangles
+  glGenBuffers(1, &(simulation.triangle_buffer));
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.triangle_buffer);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, simulation.num_draw_triangles * 3 * sizeof(GLint), side_triangle_indecies, GL_STATIC_DRAW);
+  simulation.triangles = clCreateFromGLBuffer(cl_components.opencl_context, CL_MEM_READ_ONLY, simulation.triangle_buffer, &error);
+
+  //Create normal buffer for shading triangles
+  glGenBuffers(1, &(simulation.normal_buffer));
+  glBindBuffer(GL_ARRAY_BUFFER, simulation.normal_buffer);
+  glBufferData(GL_ARRAY_BUFFER, simulation.num_draw_triangles * 9 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
+  simulation.normals = clCreateFromGLBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE, simulation.normal_buffer, &error);
    
   //if(error) printf("Position Buffer Error: %d", error);
   //Make vertex_init 0 so we can use them as source for position and velocity
