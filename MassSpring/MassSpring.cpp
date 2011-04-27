@@ -29,7 +29,7 @@ int main(int argc, char** argv)
   
   //generateJelloCube("cubeEdges","edgeColors");
   
-  generateDino("dinoVerts","dinoEdges","dinoColors","dinoSurface","dinoSurfaceP");
+  generateDino("dinoVerts","dinoEdges","dinoColors","dinoSurface","dinoSurfaceP","dinoSurfaceT");
   configureTestKernelRK4();
   glutIdleFunc(runTestKernelRK4);
   //atexit(cleanup);

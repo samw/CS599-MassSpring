@@ -94,5 +94,11 @@
     <None Include="dinoSurfaceP">
       <Filter>Resource Files\dino</Filter>
     </None>
+    <None Include="dinoSurfaceT">
+      <Filter>Resource Files\dino</Filter>
+    </None>
+    <None Include="collision.cl">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

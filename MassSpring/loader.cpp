@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <math.h>
 
+#define DINO_NUM 10
+
 void generateJelloCube(char *springsfilename, char *colorsfilename)
 {
   FILE *spring_file;
@@ -323,21 +325,26 @@ void generateJelloCube(char *springsfilename, char *colorsfilename)
   delete[] side_triangle_indecies;
 }
 
-void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilename, char *surfacefilename, char *surfacepfilename)
+void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilename, char *surfacefilename, char *surfacepfilename, char *surfacetfilename)
 {
   FILE *verts_file;
   FILE *spring_file;
   FILE *color_file;
   FILE *surface_file;
   FILE *surfaceP_file;
+  FILE *surfaceT_file;
   int num_vertecies = 0;
   int num_springs = 0;
   int num_colors = 0;
   int num_surftri = 0;
   int num_surfvert = 0;
+  int num_surftet = 0;
   float (*vertex_positions)[4];
+  int (*surface_tets)[4];
+  int (*colinfo)[2];
   GLubyte (*vertex_colors)[4]; //used to color vertecies for coloring
   float (*vertex_init)[4];
+  float (*nrm)[4];
   GLint *side_vertex_indecies; //used to fill IBO
   GLint *side_triangle_indecies; // used to fill IBO for triangles
   int side_vert_fill = 0;
@@ -381,6 +388,12 @@ void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilena
 	  printf(" Error reading surface input file\n");
 	  return;
   }
+  surfaceT_file = fopen(surfacetfilename,"r");
+  if( !surfaceT_file)
+  {
+	  printf(" Error reading surface input file\n");
+	  return;
+  }
 
 
   //// READ FILES
@@ -389,14 +402,18 @@ void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilena
   fscanf(color_file, "%d\n", &num_colors);
   fscanf(surface_file, "%d\n", &num_surftri);
   fscanf(surfaceP_file, "%d\n", &num_surfvert);
+  fscanf(surfaceT_file, "%d\n", &num_surftet);
 
-  side_vertex_indecies = new GLint[num_surfvert];
-  side_triangle_indecies = new GLint[3*num_surftri];
-  vertex_positions = new float[num_vertecies][4];
-  vertex_colors = new GLubyte[num_vertecies][4];
-  vertex_init = new float[num_vertecies][4];
-  springs = new int[num_springs][2];
-  spring_colors = new int[num_springs];
+  side_vertex_indecies = new GLint[num_surfvert*DINO_NUM];
+  side_triangle_indecies = new GLint[3*DINO_NUM * num_surftri];
+  nrm = new float[num_surftri*DINO_NUM][4];
+  vertex_positions = new float[num_vertecies*DINO_NUM][4];
+  vertex_colors = new GLubyte[num_vertecies*DINO_NUM][4];
+  vertex_init = new float[num_vertecies*DINO_NUM][4];
+  surface_tets = new int[num_surftet][4];
+  colinfo = new int[num_surftet * num_surfvert][2];
+  springs = new int[num_springs*DINO_NUM][2];
+  spring_colors = new int[num_springs*DINO_NUM];
   batch_count = new int[num_colors];
   fill_count = new int[num_colors];
   for(int i = 0; i < num_colors; i++)
@@ -407,20 +424,108 @@ void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilena
   
   for(int i = 0; i < num_vertecies; i++){
 	  fscanf(verts_file, "%f %f %f\n", &vertex_positions[i][0], &vertex_positions[i][1], &vertex_positions[i][2]);
+
+	  for(int j = 1; j < DINO_NUM; j++){
+	  vertex_positions[i+(j*num_vertecies)][0] =vertex_positions[i][0];
+	  vertex_positions[i+(j*num_vertecies)][1] =vertex_positions[i][1];
+	  vertex_positions[i+(j*num_vertecies)][2] =vertex_positions[i][2];
+	  vertex_positions[i+(j*num_vertecies)][3] =vertex_positions[i][3];
+	  }
+
 	  vertex_positions[i][3] = 1.0f;
-	  vertex_positions[i][1] +=5;
+	  vertex_positions[i][0] *=.3;
+	  vertex_positions[i][1] *=.3;
+	  vertex_positions[i][2] *=.3;
+	  vertex_positions[i][1] += 2;
+	  vertex_positions[i][0] -= 1.6;
+	  int dd = .1;
+	  for(int j = 1; j < DINO_NUM; j++){
+		  if(j == 1){
+	  vertex_positions[i+(j*num_vertecies)][3] = 1.0f;
+	  vertex_positions[i+(j*num_vertecies)][0] *=-.3;
+	  vertex_positions[i+(j*num_vertecies)][1] *=.3;
+	  vertex_positions[i+(j*num_vertecies)][2] *=.3;
+	  vertex_positions[i+(j*num_vertecies)][1] += 2;
+      vertex_positions[i+(j*num_vertecies)][0] += 2;
+		  }
+
+		  if(j == 2){
+	  vertex_positions[i+(j*num_vertecies)][3] = 1.0f;
+	  vertex_positions[i+(j*num_vertecies)][0] *=-.3;
+	  vertex_positions[i+(j*num_vertecies)][1] *=.3;
+	  vertex_positions[i+(j*num_vertecies)][2] *=.3;
+	  vertex_positions[i+(j*num_vertecies)][2] += 2;
+	  vertex_positions[i+(j*num_vertecies)][1] += 2;
+      vertex_positions[i+(j*num_vertecies)][0] += 2;
+		  }
+		  if(j == 3){
+	  vertex_positions[i+(j*num_vertecies)][3] = 1.0f;
+	  vertex_positions[i+(j*num_vertecies)][0] *=.3;
+	  vertex_positions[i+(j*num_vertecies)][1] *=.3;
+	  vertex_positions[i+(j*num_vertecies)][2] *=.3;
+	  vertex_positions[i+(j*num_vertecies)][2] -= 2;
+	  vertex_positions[i+(j*num_vertecies)][1] += 2;
+      vertex_positions[i+(j*num_vertecies)][0] += 2;
+		  }
+		  if(j == 4){
+	  vertex_positions[i+(j*num_vertecies)][3] = 1.0f;
+	  vertex_positions[i+(j*num_vertecies)][0] *=.1;
+	  vertex_positions[i+(j*num_vertecies)][1] *=.1;
+	  vertex_positions[i+(j*num_vertecies)][2] *=.1;
+	  vertex_positions[i+(j*num_vertecies)][2] += 2;
+	  vertex_positions[i+(j*num_vertecies)][1] += 3;
+      vertex_positions[i+(j*num_vertecies)][0] += 2;
+		  }
+		  if(j == 5){
+	  vertex_positions[i+(j*num_vertecies)][3] = 1.0f;
+	  vertex_positions[i+(j*num_vertecies)][0] *=.3;
+	  vertex_positions[i+(j*num_vertecies)][1] *=.3;
+	  vertex_positions[i+(j*num_vertecies)][2] *=.3;
+	  vertex_positions[i+(j*num_vertecies)][2] += 2;
+	  vertex_positions[i+(j*num_vertecies)][1] += 2;
+      vertex_positions[i+(j*num_vertecies)][0] += 2;
+		  }
+		  
+		  if(j > 5){
+			  vertex_positions[i+(j*num_vertecies)][3] = 1.0f;
+	  vertex_positions[i+(j*num_vertecies)][0] *=.2;
+	  vertex_positions[i+(j*num_vertecies)][1] *=.2;
+	  vertex_positions[i+(j*num_vertecies)][2] *=.2;
+	  vertex_positions[i+(j*num_vertecies)][2] -= 2*dd;
+	  vertex_positions[i+(j*num_vertecies)][1] += dd;
+      vertex_positions[i+(j*num_vertecies)][0] += dd;
+	  dd+= .1;
+		  }
+	  }
 
 	  vertex_colors[i][0] = (i >>  0) & 0xFF;
 	  vertex_colors[i][1] = (i >>  8) & 0xFF;
 	  vertex_colors[i][2] = (i >> 16) & 0xFF;
 	  vertex_colors[i][3] = (i >> 24) & 0xFF;
+
+	  for(int j = 1; j < DINO_NUM; j++){
+	  vertex_colors[i+(j*num_vertecies)][0] = (i >>  0) & 0xFF;
+	  vertex_colors[i+(j*num_vertecies)][1] = (i >>  8) & 0xFF;
+	  vertex_colors[i+(j*num_vertecies)][2] = (i >> 16) & 0xFF;
+	  vertex_colors[i+(j*num_vertecies)][3] = (i >> 24) & 0xFF;
+	  }
   }
+  //printf("%f %f %f", vertex_positions[num_vertecies*2-1][0], vertex_positions[num_vertecies*2-1][1], vertex_positions[num_vertecies*2-1][2]);
 
   for(int i = 0; i < num_springs; i++)
   {
     fscanf(spring_file, "%d %d\n", &(springs[i][0]), &(springs[i][1]));
-    fscanf(color_file, "%d\n", &(spring_colors[i]));
-    batch_count[spring_colors[i]]++;
+	fscanf(color_file, "%d\n", &(spring_colors[i]));
+	batch_count[spring_colors[i]]++;
+	for(int j = 1; j < DINO_NUM; j++){
+	springs[i+(j*num_springs)][0] = springs[i][0]+(j*num_vertecies);
+	springs[i+(j*num_springs)][1] = springs[i][1]+(j*num_vertecies);
+	if(j % 2)
+		spring_colors[i+(j*num_springs)] = spring_colors[i];
+	else
+		spring_colors[i+(j*num_springs)] = 23 - spring_colors[i];
+	batch_count[spring_colors[i+(j*num_springs)]]++;
+	}
   }
   fclose(spring_file);
   fclose(color_file);
@@ -431,17 +536,50 @@ void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilena
 	  side_triangle_indecies[i] = a;
 	  side_triangle_indecies[i+1] =b;
 	  side_triangle_indecies[i+2] = c;
+	  for(int j = 1; j < DINO_NUM; j++){
+	  side_triangle_indecies[i+(j*num_surftri*3)] = a+(j*num_vertecies);
+	  side_triangle_indecies[i+(j*num_surftri*3) +1] = b+(j*num_vertecies);
+	  side_triangle_indecies[i+(j*num_surftri*3) +2] = c+(j*num_vertecies);
+	  }
   }
-
+  
+  for(int i =0; i < num_surftri*DINO_NUM; i++){
+	  nrm[i][0] = 0.0;
+	  nrm[i][1] = 0.0;
+	  nrm[i][2] = 0.0;
+	  nrm[i][3] = 0.0;
+  }
+ 
   for(int i =0; i < num_surfvert; i++){
 	  fscanf(surfaceP_file,"%d\n",&side_vertex_indecies[i]);
+	  for(int j = 1; j < DINO_NUM; j++){
+	  side_vertex_indecies[i+(j*num_surfvert)] = side_vertex_indecies[i]+(j*num_vertecies);
+	  }
+  }
+
+  for(int i =0; i < num_surftet; i++){
+	  fscanf(surfaceT_file,"%d %d %d %d\n", &surface_tets[i][0], &surface_tets[i][1],&surface_tets[i][2],&surface_tets[i][3]);
+	  /*surface_tets[i+num_surftet][0] = surface_tets[i][0];
+	  surface_tets[i+num_surftet][1] = surface_tets[i][1];
+	  surface_tets[i+num_surftet][2] = surface_tets[i][2];
+	  surface_tets[i+num_surftet][3] = surface_tets[i][3];*/
   }
 
   fclose(surface_file);
   fclose(surfaceP_file);
+  fclose(surfaceT_file);
 
-  simulation.num_draw_elements = num_surfvert;
-  simulation.num_draw_triangles = 3 * num_surftri;
+  int bn= 0;
+  for(int i = 0; i < num_surftet; i++){
+	  for(int j = 0; j < num_surfvert; j++){
+		  colinfo[bn][0] = i;
+		 // printf("%d\n",j);
+		  colinfo[bn][1] = j;
+		  bn++;
+	  }
+  }
+  //printf("%d %d %d %d",num_surftet*num_surfvert ,bn, colinfo[num_surftet * num_surfvert -1][0], colinfo[num_surftet * num_surfvert -1][1]);
+  
   //Count size of each spring batch
   batches = new int*[num_colors];
   for(int i = 0; i < num_colors; i++)
@@ -454,9 +592,22 @@ void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilena
     batches[spring_colors[i]][fill_count[spring_colors[i]]++]= i;
   }
 
+  for(int i = 0; i < num_springs; i++)
+  {
+	  for(int j = 1; j < DINO_NUM; j++){
+    batches[spring_colors[i+(j*num_springs)]][fill_count[spring_colors[i+(j*num_springs)]]++]= i+(j*num_springs);
+	  }
+  }
+
   //STORE SYSTEM INFORMATION AND INFORMATION ONTO VIDEOCARD
-  simulation.num_points = num_vertecies;
+  simulation.num_points = num_vertecies*DINO_NUM;
   simulation.num_batches = num_colors;
+  simulation.num_draw_elements = num_surfvert*DINO_NUM;
+  simulation.num_draw_triangles = 3 * num_surftri*DINO_NUM;
+  simulation.num_stets = num_surftet;
+  simulation.num_sverts = num_surfvert;
+  simulation.num_realpoints = num_vertecies;
+
   simulation.batch_sizes = new int[num_colors];
   for(int i = 0; i < num_colors; i++)
   {
@@ -485,7 +636,6 @@ void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilena
   glGenBuffers(1, &(simulation.element_buffer));
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.element_buffer);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, simulation.num_draw_elements * sizeof(GLint), side_vertex_indecies, GL_STATIC_DRAW);
-  
    
   //if(error) printf("Position Buffer Error: %d", error);
   //Make vertex_init 0 so we can use them as source for position and velocity
@@ -496,6 +646,18 @@ void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilena
     vertex_init[i][2] = 0.0;
     vertex_init[i][3] = 0.0;
   }
+
+  simulation.surface_verts = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+	  sizeof(cl_int) * simulation.num_draw_elements, side_vertex_indecies, &error);
+  if(error) printf("Stris buffer error %d",error);
+
+  simulation.tets = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+	  sizeof(cl_int) * 4 * simulation.num_stets, surface_tets, &error);
+  if(error) printf("Stets buffer error %d",error);
+
+  simulation.col_info = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+	  sizeof(cl_int) * 2 * simulation.num_stets * simulation.num_sverts, colinfo, &error);
+  if(error) printf("col_info buffer error %d",error);
   //Create other OpenCL buffers for acceleration, velocity and midpoint buffers
   simulation.velocity = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                        sizeof(cl_float) * 4 * simulation.num_points, vertex_init, &error);
@@ -581,6 +743,7 @@ void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilena
     delete[] spring_properties;
   }
 
+
   //DONE NOW CLEAN UP
   for(int i = 0; i < num_colors; i++)
   {
@@ -595,4 +758,5 @@ void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilena
   delete[] vertex_positions;
   delete[] side_vertex_indecies;
   delete[] side_triangle_indecies;
+  delete[] surface_tets;
 }

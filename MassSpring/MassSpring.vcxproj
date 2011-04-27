@@ -123,11 +123,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="accelinit.cl" />
+    <None Include="collision.cl" />
     <None Include="cubeEdges" />
     <None Include="dinoColors" />
     <None Include="dinoEdges" />
     <None Include="dinoSurface" />
     <None Include="dinoSurfaceP" />
+    <None Include="dinoSurfaceT" />
     <None Include="dinoVerts" />
     <None Include="edgeColors" />
     <None Include="move.cl" />

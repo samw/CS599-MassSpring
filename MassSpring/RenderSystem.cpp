@@ -27,37 +27,38 @@ void render()
   glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
   glBegin(GL_QUADS);
   glColor3f(1.0,1.0,1.0);
-  glVertex3f(10,10,10);
-  glVertex3f(10,10,-10);
-  glVertex3f(-10,10,-10);
-  glVertex3f(-10,10,10);
+  glVertex3f(5,5,5);
+  glVertex3f(5,5,-5);
+  glVertex3f(-5,5,-5);
+  glVertex3f(-5,5,5);
 
-  glVertex3f(10,0,10);
-  glVertex3f(10,0,-10);
-  glVertex3f(-10,0,-10);
-  glVertex3f(-10,0,10);
+  glVertex3f(5,0,5);
+  glVertex3f(5,0,-5);
+  glVertex3f(-5,0,-5);
+  glVertex3f(-5,0,5);
 
-  glVertex3f(10,10,10);
-  glVertex3f(10,0,10);
-  glVertex3f(-10,0,10);
-  glVertex3f(-10,10,10);
+  glVertex3f(5,5,5);
+  glVertex3f(5,0,5);
+  glVertex3f(-5,0,5);
+  glVertex3f(-5,5,5);
 
-  glVertex3f(10,10,-10);
-  glVertex3f(10,0,-10);
-  glVertex3f(-10,0,-10);
-  glVertex3f(-10,10,-10);
+  glVertex3f(5,5,-5);
+  glVertex3f(5,0,-5);
+  glVertex3f(-5,0,-5);
+  glVertex3f(-5,5,-5);
 
-  glVertex3f(-10,10,-10);
-  glVertex3f(-10,0,-10);
-  glVertex3f(-10,0,10);
-  glVertex3f(-10,10,10);
+  glVertex3f(-5,5,-5);
+  glVertex3f(-5,0,-5);
+  glVertex3f(-5,0,5);
+  glVertex3f(-5,5,5);
 
-  glVertex3f(10,10,-10);
-  glVertex3f(10,0,-10);
-  glVertex3f(10,0,10);
-  glVertex3f(10,10,10);
+  glVertex3f(5,5,-5);
+  glVertex3f(5,0,-5);
+  glVertex3f(5,0,5);
+  glVertex3f(5,5,5);
   glEnd();
   glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+  glShadeModel(GL_FLAT);
 
   glPointSize(2);
   glColor3f(1.0, 1.0, 0.0);
@@ -89,11 +90,23 @@ void render()
     glEnable(GL_LIGHTING);
     glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
     glVertexPointer(4, GL_FLOAT, 0, 0);
-    glEnableClientState(GL_VERTEX_ARRAY);
+	//glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	//glBindBuffer(GL_ARRAY_BUFFER,simulation.normal_buffer);
+	//glNormalPointer(GL_FLOAT,0,0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.triangle_buffer);
     glDrawElements(GL_TRIANGLES, simulation.num_draw_triangles, GL_UNSIGNED_INT, 0);
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisable(GL_LIGHTING);
+
+	/*glEnable(GL_LIGHTING);
+    glBindBuffer(GL_ARRAY_BUFFER, simulation.position_buffer);
+    glVertexPointer(4, GL_FLOAT, 0, 0);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, simulation.tri_buf2);
+    glDrawElements(GL_TRIANGLES, simulation.num_draw_triangles, GL_UNSIGNED_INT, 0);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisable(GL_LIGHTING);*/
   }
 
   // Entered selection mode, render vertex indecies instead and find selected vertex, but don't render
@@ -189,7 +202,7 @@ bool initGLUT()
     return false;
   }
 
-  window_camera.view_mode = 2;
+  window_camera.view_mode = 1;
  
   //SETUP LIGHTS
   // global ambient light

@@ -9,10 +9,14 @@ struct system
   int num_points;
   int num_draw_elements;
   int num_draw_triangles;
+  int num_realpoints;
+  int num_stets;
+  int num_sverts;
   GLuint position_buffer; //Buffer for vertex positions of all vertecies
   GLuint element_buffer;  //Buffer for vertecies on outside of model (used for drawing side as dots)
   GLuint color_id_buffer; //Buffer to color vertecies for mouse choosing
   GLuint triangle_buffer; //Buffer for vertex triplets creating triangles
+  GLuint normal_buffer;
   int last_vertex_selected;
   int vertex_pulling;
 
@@ -21,6 +25,9 @@ struct system
   cl_mem acceleration;
   cl_mem springs;
   cl_mem springProperties;
+  cl_mem tets;
+  cl_mem col_info;
+  cl_mem surface_verts;
 
   int num_batches;
   int *batch_sizes;

@@ -239,6 +239,21 @@ void configureTestKernelRK4()
   clSetKernelArg(cl_components.init_acceleration_kernel, 5, sizeof(cl_float4), initvector);
   initvector[1] = 0.0;
 
+ // clSetKernelArg(cl_components.calculate_normals,0,sizeof(cl_uint), &(simulation.position));
+ // clSetKernelArg(cl_components.calculate_normals,1,sizeof(cl_uint), &(simulation.normals));
+ // clSetKernelArg(cl_components.calculate_normals,2,sizeof(cl_uint), &(simulation.surface_tris));
+
+  clSetKernelArg(cl_components.collision_kernel,0,sizeof(cl_uint), &(simulation.position));
+  clSetKernelArg(cl_components.collision_kernel,1,sizeof(cl_uint), &(simulation.velocity));
+  clSetKernelArg(cl_components.collision_kernel,2,sizeof(cl_uint), &(simulation.acceleration));
+  clSetKernelArg(cl_components.collision_kernel,3,sizeof(cl_uint), &(simulation.col_info));
+  int zero = 0;
+  int off = simulation.num_realpoints;
+  clSetKernelArg(cl_components.collision_kernel,4,sizeof(cl_uint), &(simulation.tets));
+  clSetKernelArg(cl_components.collision_kernel,5,sizeof(cl_int), &(off));
+  clSetKernelArg(cl_components.collision_kernel,6,sizeof(cl_int), &(zero));
+
+
   //spring kernel (non-changing arguments)
   clSetKernelArg(cl_components.batch_spring_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));
   clSetKernelArg(cl_components.batch_spring_kernel, 3, sizeof(cl_uint), &(simulation.springs));
@@ -297,13 +312,13 @@ void runTestKernelRK4()
   cl_event lastevent;
   cl_event currentevent;
   int numstepsperframe = 1;
-
+  
   glFinish();
   for(int t = 0; t < numstepsperframe; t++)
   {
 
   clEnqueueAcquireGLObjects(cl_components.command_queue, 1, &(simulation.position), 0, NULL, &lastevent);
-
+  
   //zero acceleration
   if(simulation.vertex_pulling == 3)
   {
@@ -356,6 +371,9 @@ void runTestKernelRK4()
                          1, NULL, (size_t *) &simulation.num_points, NULL, 1, &lastevent, &currentevent);
   clReleaseEvent(lastevent);
   lastevent = currentevent;
+  
+ 
+
   //done setting up initial accelerations
 
   clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.position));
@@ -370,7 +388,13 @@ void runTestKernelRK4()
     clReleaseEvent(lastevent);
     lastevent = currentevent;
   }
-
+  
+  /*int work_size1[1] = {simulation.num_stets * simulation.num_sverts};
+  clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.collision_kernel
+                         1, NULL, (size_t *) &work_size1, NULL, 1, &lastevent, &currentevent);
+	clReleaseEvent(lastevent);
+	lastevent = currentevent;*/
+  
   clSetKernelArg(cl_components.batch_spring_kernel, 0, sizeof(cl_uint), &(simulation.bufferP));
   clSetKernelArg(cl_components.batch_spring_kernel, 1, sizeof(cl_uint), &(simulation.bufferV));
 
@@ -396,6 +420,9 @@ void runTestKernelRK4()
     clReleaseEvent(lastevent);
     lastevent = currentevent;
   }
+  
+  
+  
 
   //part 2 of rk4
   clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.rk4_kernel_2,
@@ -419,6 +446,9 @@ void runTestKernelRK4()
     clReleaseEvent(lastevent);
     lastevent = currentevent;
   }
+  
+  
+  
 
   //part 3 of rk4
   clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.rk4_kernel_3,
@@ -442,14 +472,14 @@ void runTestKernelRK4()
     clReleaseEvent(lastevent);
     lastevent = currentevent;
   }
-
-  //part 4 of rk4
+  
+   //part 4 of rk4
   clEnqueueNDRangeKernel(cl_components.command_queue, cl_components.rk4_kernel_4,
 						1,NULL, (size_t *) &simulation.num_points, NULL, 1, &lastevent, &currentevent);
   clReleaseEvent(lastevent);
   lastevent = currentevent;
 
-
+ 
   clEnqueueReleaseGLObjects(cl_components.command_queue, 1, &(simulation.position), 1, &lastevent, NULL);
   clReleaseEvent(lastevent);
   clFinish(cl_components.command_queue);
@@ -545,6 +575,10 @@ bool initOpenCL()
                             	  &cl_components.rk4_kernel_2, &cl_components.rk4_kernel_3, &cl_components.rk4_kernel_4};
   loadCLCodeFile("timestep.cl", cl_components.opencl_context, num_devices, devices, 7,
                  step_kernel_names, step_kernels);
+  
+  char *collision_kernel_names[1] = {"collision_kernel"};
+  cl_kernel *collision_kernels[1] = {&cl_components.collision_kernel};
+  loadCLCodeFile("collision.cl",cl_components.opencl_context,num_devices,devices,1,collision_kernel_names,collision_kernels);
 
   delete platforms;
   delete devices;
