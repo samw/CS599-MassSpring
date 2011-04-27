@@ -61,30 +61,30 @@ __kernel void init_acceleration_kernel(
    int element = get_global_id(0);
    float maxdistance = 0.2;
    float dist = distance( *pull_position, positions[element] );
-   float4 clamp;
-   clamp.s0 = min( 5.0, max(positions[element].s0, -5.0));
-   clamp.s1 = min( 5.0, max(positions[element].s1, -0.0));
-   clamp.s2 = min( 5.0, max(positions[element].s2, -5.0));
-   clamp.s3 = 1.0;
+   float4 pclamp;
+   pclamp.s0 = clamp(positions[element].s0, -5.0, 5.0); 
+   pclamp.s1 = clamp(positions[element].s1, -0.0, 5.0); 
+   pclamp.s2 = clamp(positions[element].s2, -5.0, 5.0); 
+   pclamp.s3 = 1.0;
    if( dist < maxdistance)
    {
      acceleration[element] = *pull_value;
-     if(length(velocitites[element]) > 3.0)
+     if(length(velocitites[element]) > 2.0)
      {
-       velocitites[element] = (normalize(velocitites[element])*3.0);
+       velocitites[element] = (normalize(velocitites[element])*2.0);
      }
    }
    else
      acceleration[element] = initializer;
 
-  if(clamp.s0 != positions[element].s0 || clamp.s1 != positions[element].s1 || clamp.s2 != positions[element].s2)
+  if(pclamp.s0 != positions[element].s0 || pclamp.s1 != positions[element].s1 || pclamp.s2 != positions[element].s2)
   {
     float khook = 1000;
     float kdamp = 20.0;
 
     float4 diff, vdiff;
     float len, forcemagnitude, dampingmagnitude;
-    diff = positions[element] - clamp;
+    diff = positions[element] - pclamp;
     vdiff = velocitites[element];
     dampingmagnitude= dot(vdiff, diff);
     len = length(diff);
