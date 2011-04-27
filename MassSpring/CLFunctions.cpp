@@ -6,7 +6,7 @@
 
 
 
-#define TS .008
+#define TS .0023
 
 struct cl_system cl_components;
 
@@ -230,7 +230,7 @@ void configureTestKernelRK4()
   clSetKernelArg(cl_components.calculate_pull_kernel, 3, sizeof(cl_uint), &(simulation.pull_value));
 
   //init acceleration kernel
-  initvector[1] = -5.0;
+  initvector[1] = -20.0;
   clSetKernelArg(cl_components.init_acceleration_kernel, 0, sizeof(cl_uint), &(simulation.position));
   clSetKernelArg(cl_components.init_acceleration_kernel, 1, sizeof(cl_uint), &(simulation.velocity));
   clSetKernelArg(cl_components.init_acceleration_kernel, 2, sizeof(cl_uint), &(simulation.acceleration));

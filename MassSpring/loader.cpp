@@ -504,10 +504,10 @@ void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilena
 	  vertex_colors[i][3] = (i >> 24) & 0xFF;
 
 	  for(int j = 1; j < DINO_NUM; j++){
-	  vertex_colors[i+(j*num_vertecies)][0] = (i >>  0) & 0xFF;
-	  vertex_colors[i+(j*num_vertecies)][1] = (i >>  8) & 0xFF;
-	  vertex_colors[i+(j*num_vertecies)][2] = (i >> 16) & 0xFF;
-	  vertex_colors[i+(j*num_vertecies)][3] = (i >> 24) & 0xFF;
+	  vertex_colors[i+(j*num_vertecies)][0] = (i+(j*num_vertecies) >>  0) & 0xFF;
+	  vertex_colors[i+(j*num_vertecies)][1] = (i+(j*num_vertecies) >>  8) & 0xFF;
+	  vertex_colors[i+(j*num_vertecies)][2] = (i+(j*num_vertecies) >> 16) & 0xFF;
+	  vertex_colors[i+(j*num_vertecies)][3] = (i+(j*num_vertecies) >> 24) & 0xFF;
 	  }
   }
   //printf("%f %f %f", vertex_positions[num_vertecies*2-1][0], vertex_positions[num_vertecies*2-1][1], vertex_positions[num_vertecies*2-1][2]);
@@ -729,8 +729,8 @@ void generateDino(char *vertsfilename, char *springsfilename, char *colorsfilena
         SQUARE((vertex_positions[batchedsprings[j][0]][2] - vertex_positions[batchedsprings[j][1]][2])) );
 #undef SQUARE
       spring_properties[j][0] = 1.0 * rest; //reset length 
-      spring_properties[j][1] = 8000.0; //spring force
-      spring_properties[j][2] = 40.0; //damepning force
+      spring_properties[j][1] = 200000.0; //spring force
+      spring_properties[j][2] = 100.0; //damepning force
       spring_properties[j][3] = 0.0; //<empty>
     }
     simulation.springBatches[i] = clCreateBuffer(cl_components.opencl_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,

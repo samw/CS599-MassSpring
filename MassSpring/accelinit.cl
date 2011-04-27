@@ -36,7 +36,7 @@ __kernel void calculate_pull_acceleration(__global float4 *position, __global fl
   float dotp = dot(camera_forward, buffer);
   buffer = camera_position + (camera_forward * dotp);
 
-  float khook = 1000;
+  float khook = 8000;
   float kdamp = 5.0;
 
   float4 diff, vdiff;
@@ -49,7 +49,7 @@ __kernel void calculate_pull_acceleration(__global float4 *position, __global fl
   diff = normalize(diff);
   forcemagnitude = -khook * (len);
   forcemagnitude += -kdamp*dampingmagnitude/len;
-  if(forcemagnitude > 10) forcemagnitude = 10;
+  if(forcemagnitude > 80) forcemagnitude = 80;
   diff = diff * forcemagnitude;
   *pull_acceleration = diff;
 }
