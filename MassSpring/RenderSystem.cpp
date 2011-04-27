@@ -57,7 +57,7 @@ void render()
   glVertex3f(5,0,5);
   glVertex3f(5,5,5);
   glEnd();
-  glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+  glPolygonMode(GL_FRONT,GL_FILL);
   glShadeModel(GL_FLAT);
 
   glPointSize(2);
